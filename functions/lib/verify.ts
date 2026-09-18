@@ -21,6 +21,13 @@ export interface ScoreSubmission {
   textVersion?: string;
   /** 연속 키 입력 간격(ms) 배열. 최대 2000개까지만 전송. */
   intervals?: number[];
+  /**
+   * 친 «지문»의 되돌릴 수 없는 요약(src/lib/typing/text-fingerprint.ts).
+   * 🔴 이게 없으면 서버는 «무엇을 쳤는지»를 볼 방법이 아예 없다 — 간격만 보므로 사용자가 직접 넣은
+   *    「가가가가…」를 손으로 빠르게 친 900타/분이 그대로 승인됐다(2026-09-18 사용자 지적·재현).
+   *    원문은 보내지 않는다(사생활). 반복뿐인 글인지 판정할 만큼의 숫자만 보낸다.
+   */
+  text?: { len: number; uniqueRatio: number; topCharRatio: number; bigramRatio: number; wordUniqueRatio: number };
 }
 
 export type VerifyStatus = 'ok' | 'pending' | 'rejected';
@@ -40,6 +47,19 @@ export const MAX_SCORE_PER_SECOND = 500;
 export const MAX_SCORE = 1_000_000;
 /** 신고 정확도와 타수에서 계산한 정확도의 허용 오차(%p) */
 export const ACCURACY_TOLERANCE = 2;
+
+/**
+ * 지문 «내용» 문턱 — 앱이 실제로 쓰는 글과 무의미한 반복문을 가르는 선.
+ * 2026-09-18 실측(tests/text-fingerprint.test.ts 가 이 수치를 고정한다):
+ *   실제 콘텐츠 bigramRatio 최저 — 한글 긴문장 0.416 · 영어 짧은문장 0.549 ·
+ *                                한글 짧은문장 0.636 · 자리 드릴 0.865 · 단어목록 0.816
+ *   무의미 반복       bigramRatio — 「가」×20 0.053 · 「사과」 반복 0.107 · 자모 반복 0.174
+ * 양쪽 어디에도 붙지 않게 거부 0.25 / 보류 0.35 로 둔다.
+ * 🔴 짧은 글은 비율이 불안정하므로 TEXT_MIN_LEN 미만은 «판정하지 않는다»(자리 드릴 한 글자 등).
+ */
+export const TEXT_MIN_LEN = 12;
+export const TEXT_BIGRAM_REJECT = 0.25;
+export const TEXT_BIGRAM_PENDING = 0.35;
 
 function stdev(xs: number[]): number {
   if (xs.length < 2) return 0;
@@ -153,6 +173,19 @@ export function verifySubmission(sub: ScoreSubmission): VerifyResult {
   } else if (sub.kpm > 700) {
     // 고득점인데 타건 로그가 없으면 자동 승인하지 않는다
     return { status: 'pending', reason: 'high_score_without_keylog' };
+  }
+
+  // --- 친 «내용» 검사 — 무엇을 쳤는지 볼 수 있을 때만 ---
+  const fp = sub.text;
+  if (fp && Number.isFinite(fp.len) && fp.len >= TEXT_MIN_LEN) {
+    const bg = Number(fp.bigramRatio);
+    if (!Number.isFinite(bg) || bg < 0 || bg > 1) return { status: 'rejected', reason: 'malformed_text_stats' };
+    // 같은 글자·낱말만 되풀이하는 글은 «빨리 치기 쉬운 글»이지 실력이 아니다
+    if (bg < TEXT_BIGRAM_REJECT) return { status: 'rejected', reason: 'text_too_repetitive' };
+    if (bg < TEXT_BIGRAM_PENDING) return { status: 'pending', reason: 'text_repetitive' };
+  } else if (!fp && sub.kpm > 700) {
+    // 고득점인데 «무엇을 쳤는지»를 안 보냈으면 자동 승인하지 않는다(옛 클라이언트 포함)
+    return { status: 'pending', reason: 'high_score_without_text_stats' };
   }
 
   return { status: 'ok' };

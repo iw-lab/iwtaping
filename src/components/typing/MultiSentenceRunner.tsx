@@ -130,6 +130,7 @@ export function MultiSentenceRunner({ sentences, onAllDone, onRetry }: MultiSent
       <TypingArea
         key={index}
         text={sentences[index]}
+        mode="short"
         showResult={false}
         onComplete={handleComplete}
       />

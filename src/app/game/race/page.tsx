@@ -356,8 +356,10 @@ export default function RaceGamePage() {
         ))}
       </Card>
 
+      {/* 🔴 mode="race" — 순위는 handleComplete 의 game:race 제출 하나로 끝낸다.
+          기본값(speed_test)이면 한 판이 speed 리더보드에도 같이 올라간다(2026-09-18 정리). */}
       {status === 'racing' && text && (
-        <TypingArea ref={areaRef} text={text} onComplete={handleComplete} onProgress={handleProgress} />
+        <TypingArea ref={areaRef} text={text} mode="race" onComplete={handleComplete} onProgress={handleProgress} />
       )}
 
       {status === 'finished' && (

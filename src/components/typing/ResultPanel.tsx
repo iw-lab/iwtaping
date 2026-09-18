@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { TypingResult } from '@/types/typing';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import type { TextFingerprint } from '@/lib/typing/text-fingerprint';
 import { submitScore } from '@/lib/api/client';
 import { earnedXpFor, earnedCoinsFor } from '@/lib/progress/rewards';
 import { Mascot } from '../mascot/Mascot';
@@ -16,6 +17,16 @@ interface ResultPanelProps {
   result: TypingResult;
   maxCombo: number;
   onRestart: () => void;
+  /** 이 세션이 실제로 어느 모드였는가 — 예전엔 무엇을 쳤든 'speed' 로 제출해 랭킹이 뒤섞였다 */
+  mode?: string;
+  /**
+   * 서버 순위에 올릴 수 있는 세션인가. 🔴 **지문을 사용자가 고른 판은 false.**
+   * 커스텀 테스트는 칠 글을 본인이 넣으므로, 그 기록은 실력의 증거가 될 수 없다
+   * (2026-09-18 사용자 지적 「의미없는 문장을 써도 타자수가 막 올라간다」).
+   */
+  ranked?: boolean;
+  /** 친 글의 되돌릴 수 없는 요약 — 서버가 «반복뿐인 글»을 거를 근거 */
+  textFingerprint?: TextFingerprint;
 }
 
 // Grade system
@@ -64,7 +75,7 @@ function AnimatedNumber({ value, duration = 1000, delay = 0 }: { value: number; 
   return <>{display}</>;
 }
 
-export function ResultPanel({ result, maxCombo, onRestart }: ResultPanelProps) {
+export function ResultPanel({ result, maxCombo, onRestart, mode = 'speed', ranked = true, textFingerprint }: ResultPanelProps) {
   const { addXP, addCoins, syncFromServer } = useProgressStore();
   const { trigger } = useCelebrationStore();
   const [phase, setPhase] = useState(0); // 0=grade, 1=stats, 2=rewards
@@ -91,8 +102,9 @@ export function ResultPanel({ result, maxCombo, onRestart }: ResultPanelProps) {
       addXP(earnedXP);
       addCoins(earnedCoins);
       // 서버 순위 제출 — 백엔드가 없으면 조용히 무시된다(오프라인 우선)
+      if (!ranked) return;   // 지문을 사용자가 고른 판은 순위에 올리지 않는다(기록·XP 는 그대로)
       void submitScore({
-        mode: 'speed',
+        mode,
         kpm: result.kpm,
         accuracy: result.accuracy,
         maxCombo,
@@ -101,13 +113,14 @@ export function ResultPanel({ result, maxCombo, onRestart }: ResultPanelProps) {
         correctKeystrokes: result.correctKeystrokes,
         // 서버 부정행위 검증의 입력 — 이게 없으면 간격 분석이 아예 동작하지 않는다
         intervals: result.keyIntervals,
+        text: textFingerprint,
       }).then((res) => {
         // 서버가 진실원 — 검증 통과분의 잔액을 화면에 반영한다.
         // (반영하지 않으면 클라이언트 낙관 적립과 서버 잔액이 갈라진다)
         if (res?.wallet) syncFromServer(res.wallet);
       });
     }
-  }, [phase, xpAwarded, addXP, addCoins, syncFromServer, earnedXP, earnedCoins, maxCombo, result]);
+  }, [phase, xpAwarded, addXP, addCoins, syncFromServer, earnedXP, earnedCoins, maxCombo, result, mode, ranked, textFingerprint]);
 
   const stats = [
     { label: '타/분', value: Math.round(result.kpm), color: 'var(--color-primary)', delay: 200 },

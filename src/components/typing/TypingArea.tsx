@@ -1,8 +1,9 @@
 'use client';
 
 import { useRef, useEffect, useCallback, useState, forwardRef, useImperativeHandle } from 'react';
-import { CharState, TypingResult } from '@/types/typing';
+import { CharState, TypingResult, TypingMode } from '@/types/typing';
 import { useTypingEngine } from '@/hooks/useTypingEngine';
+import { fingerprintText } from '@/lib/typing/text-fingerprint';
 import { TextDisplay, TypedLine } from './TextDisplay';
 import { LiveStats } from './LiveStats';
 import { ResultPanel } from './ResultPanel';
@@ -24,6 +25,13 @@ interface TypingAreaProps {
   onCurrentChar?: (char: string) => void;
   /** false면 완료 시 결과 패널을 표시하지 않는다(다문장 러너가 직접 진행 제어). 기본 true. */
   showResult?: boolean;
+  /** 이 화면이 실제로 어느 모드인가(랭킹 분리용). 기본은 속도 테스트. */
+  mode?: TypingMode;
+  /**
+   * 서버 순위에 올릴 수 있는 세션인가. 🔴 **칠 글을 사용자가 고르는 화면은 false 로 준다**
+   * — 커스텀 테스트가 그렇다. 기록·통계·XP 는 그대로 쌓이고 순위 제출만 빠진다.
+   */
+  ranked?: boolean;
   showKeyboard?: boolean;
   className?: string;
 }
@@ -33,8 +41,29 @@ export interface TypingAreaHandle {
   finish: () => void;
 }
 
+/**
+ * 화면 모드 → 서버 순위 모드 키.
+ * 🔴 서버 리더보드가 읽는 키는 `speed` 와 `accuracy` 둘뿐이다(functions/api/leaderboard.ts MODES).
+ *    예전엔 **무엇을 쳤든 'speed' 로** 제출해서 단어·장문·코드·커스텀 연습이 전부 속도 랭킹에
+ *    섞여 들어갔다(2026-09-18). 연습 모드는 자기 이름으로 제출해 랭킹에서 빠지고,
+ *    지갑·XP 는 그대로 받는다(scores.ts 는 모드를 가리지 않는다).
+ */
+const SERVER_MODE: Record<TypingMode, string> = {
+  speed_test: 'speed',
+  accuracy_test: 'accuracy',
+  position: 'position',
+  word: 'word',
+  short: 'short',
+  long: 'long',
+  code: 'code',
+  custom_test: 'custom_test',
+  // 레이스: 순위는 game:race 가 맡는다. 이 키는 리더보드 MODES 에 없으므로 순위에 안 오르고,
+  // `game:` 접두사도 아니라 지갑·XP 는 그대로 받는다(scores.ts 는 game:* 에만 재화를 막는다).
+  race: 'race',
+};
+
 export const TypingArea = forwardRef<TypingAreaHandle, TypingAreaProps>(function TypingArea(
-  { text, onComplete, onRestart, onProgress, onStart, onCurrentChar, showResult = true, className = '' },
+  { text, onComplete, onRestart, onProgress, onStart, onCurrentChar, showResult = true, mode = 'speed_test', ranked = true, className = '' },
   ref,
 ) {
   const settings = useSettingsStore((s) => s.settings);
@@ -66,7 +95,7 @@ export const TypingArea = forwardRef<TypingAreaHandle, TypingAreaProps>(function
     onComplete: (r) => {
       setResult(r);
       // Record session for ranking & stats
-      addSession({ mode: 'word', language: settings.language || 'ko', text, result: r, timestamp: Date.now() });
+      addSession({ mode, language: settings.language || 'ko', text, result: r, timestamp: Date.now() });
       recordSession(r, { maxCombo, language: settings.language === 'en' ? 'en' : 'ko' });
 
       // Mascot reaction
@@ -185,6 +214,9 @@ export const TypingArea = forwardRef<TypingAreaHandle, TypingAreaProps>(function
         result={result}
         maxCombo={maxCombo}
         onRestart={handleRestart}
+        mode={SERVER_MODE[mode]}
+        ranked={ranked}
+        textFingerprint={fingerprintText(text)}
       />
     );
   }

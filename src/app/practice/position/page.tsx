@@ -125,7 +125,7 @@ export default function PositionPracticePage() {
         useJamoMode ? (
           <JamoTypingArea text={text} onRestart={handleRestart} onCurrentChar={handleCurrentChar} />
         ) : (
-          <TypingArea text={text} onRestart={handleRestart} onCurrentChar={handleCurrentChar} />
+          <TypingArea text={text} onRestart={handleRestart} onCurrentChar={handleCurrentChar} mode="position" />
         )
       )}
 

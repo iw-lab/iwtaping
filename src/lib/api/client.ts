@@ -134,6 +134,8 @@ export async function restoreSession(): Promise<ApiUser | null> {
   return res.user;
 }
 
+import type { TextFingerprint } from '@/lib/typing/text-fingerprint';
+
 export interface SubmitInput {
   mode: string;
   language?: string;
@@ -146,6 +148,8 @@ export interface SubmitInput {
   correctKeystrokes: number;
   textHash?: string;
   intervals?: number[];
+  /** 친 «지문»의 되돌릴 수 없는 요약 — 서버가 «무엇을 쳤는가»를 보는 유일한 창구 */
+  text?: TextFingerprint;
 }
 
 export interface WalletState {

@@ -5,7 +5,12 @@ export type FingerType =
 
 export type TypingStatus = 'idle' | 'ready' | 'typing' | 'paused' | 'finished';
 
-export type TypingMode = 'position' | 'word' | 'short' | 'long' | 'code' | 'speed_test' | 'accuracy_test' | 'custom_test';
+/**
+ * 🔴 'race' 는 «게임이지만 실제 타건으로 검증되는» 타이핑이다. 순위는 game:race 리더보드가 맡고,
+ *    이 모드로 내는 제출은 지갑·XP 전용이다 — 예전엔 레이스 한 판이 game:race 와 speed **양쪽에**
+ *    올라가 속도 순위를 이중으로 채웠다(2026-09-18).
+ */
+export type TypingMode = 'position' | 'word' | 'short' | 'long' | 'code' | 'speed_test' | 'accuracy_test' | 'custom_test' | 'race';
 
 export type Language = 'ko' | 'en';
 

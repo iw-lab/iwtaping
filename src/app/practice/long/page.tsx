@@ -77,7 +77,7 @@ export default function LongPracticePage() {
             </div>
           </Card>
           {/* 세션 기록은 TypingArea가 단독으로 한다 — 여기서 또 부르면 2배로 쌓인다. */}
-          <TypingArea text={currentText.text} />
+          <TypingArea text={currentText.text} mode="long" />
         </>
       )}
     </div>

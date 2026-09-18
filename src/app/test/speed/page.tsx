@@ -86,6 +86,7 @@ export default function SpeedTestPage() {
         <TypingArea
           ref={areaRef}
           text={text}
+          mode="speed_test"
           onStart={() => setIsRunning(true)}
           // 세션 기록은 TypingArea가 단독으로 한다(콤보·언어까지 함께 넘긴다).
           // 여기서 또 recordSession을 부르면 세션·타수·퀘스트가 2배로 쌓인다.

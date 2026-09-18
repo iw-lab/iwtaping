@@ -40,7 +40,7 @@ export default function CustomTestPage() {
             &larr; 텍스트 변경
           </Button>
           {/* 세션 기록은 TypingArea가 단독으로 한다 — 여기서 또 부르면 2배로 쌓인다. */}
-          <TypingArea text={text} onRestart={() => {}} />
+          <TypingArea text={text} onRestart={() => {}} mode="custom_test" ranked={false} />
         </div>
       )}
     </div>

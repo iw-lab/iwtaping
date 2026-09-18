@@ -43,7 +43,7 @@ export default function AccuracyTestPage() {
       </div>
 
       {/* 세션 기록은 TypingArea가 단독으로 한다 — 여기서 또 부르면 2배로 쌓인다. */}
-      {text && <TypingArea text={text} />}
+      {text && <TypingArea text={text} mode="accuracy_test" />}
     </div>
   );
 }

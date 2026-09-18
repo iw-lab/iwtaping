@@ -85,7 +85,7 @@ export default function AdaptivePracticePage() {
         )}
       </Card>
 
-      <TypingArea key={round} text={text} onRestart={() => setRound((r) => r + 1)} />
+      <TypingArea key={round} text={text} onRestart={() => setRound((r) => r + 1)} mode="word" />
 
       <div className="mt-6 text-center">
         <Button variant="secondary" size="sm" onClick={() => setRound((r) => r + 1)}>

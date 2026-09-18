@@ -121,7 +121,7 @@ export default function TranscribePage() {
               {current.source} · {LEVEL_LABEL[current.level]}
             </span>
           </div>
-          <TypingArea key={current.id} text={current.text} onComplete={handleComplete} />
+          <TypingArea key={current.id} text={current.text} onComplete={handleComplete} mode="long" />
           <div className="flex justify-center mt-4">
             <Button variant={justSaved ? 'primary' : 'secondary'} onClick={nextPassage}>
               {justSaved ? '필사책에 담고 다음 글 ✍️' : '다른 글 고르기'}
