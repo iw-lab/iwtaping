@@ -19,6 +19,7 @@ import {
   type LabelBox, type LabelRequest,
 } from '@/lib/game/renderer';
 import { Ability, ABILITY_META, FREEZE_MS, rollSpecial, pickAbility, drawSpecialMarker } from '@/lib/game/special-words';
+import { createGameJuice } from '@/lib/game/juice-table';
 
 const ZOMBIE_SPRITES = {
   'zombie-bg': '/game/zombie/bg.webp',
@@ -73,9 +74,25 @@ export default function ZombieGamePage() {
   const particlesRef = useRef(new ParticleSystem());
   const shakeRef = useRef(new ScreenShake());
   const recoilRef = useRef(0); // 마지막 사격 시각(ms) — 반동 애니메이션용
+  const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 격파·피격·능력·웨이브업
   const isKorean = settings.language === 'ko';
 
   useEffect(() => { preloadSprites(ZOMBIE_SPRITES); }, []);
+
+  // 반응(주스) 인스턴스 — burst는 이 게임의 파티클(캔버스 로컬 좌표)로, sfx는 기존 soundManager로 연결한다.
+  useEffect(() => {
+    juiceRef.current = createGameJuice({
+      soundManager,
+      burst: (o: { x: number; y: number; big?: number }) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        particlesRef.current.explode(o.x - rect.left, o.y - rect.top, (o.big ?? 1) * 0.9);
+      },
+      haptics: () => settings.sfx,
+    });
+    return () => juiceRef.current?.destroy();
+  }, [settings.sfx]);
 
   useEffect(() => {
     wordGenerator.reset();
@@ -377,7 +394,10 @@ export default function ZombieGamePage() {
             speed: 2, life: 15, size: 3,
             colors: ['#B33939', '#FF6B6B'],
           });
-          soundManager?.play('keyError');
+          {
+            const rect = canvas.getBoundingClientRect();
+            juiceRef.current?.fire('miss', { x: rect.left + z.x, y: rect.top + z.y, color: '#FF6B6B' });
+          }
           if (hpRef.current <= 0) {
             particles.explode(cx, playerY, 2);
             setStatus('gameover');
@@ -522,7 +542,6 @@ export default function ZombieGamePage() {
     const meta = ABILITY_META[ability];
     if (ability === 'freeze') {
       freezeUntilRef.current = performance.now() + FREEZE_MS;
-      soundManager?.play('achievement');
     } else if (ability === 'clear') {
       // 화면의 모든 좀비 소탕 — 폭발 + 보너스 점수
       for (const z of zombiesRef.current) {
@@ -532,12 +551,11 @@ export default function ZombieGamePage() {
       zombiesRef.current = [];
       setScore(scoreRef.current);
       shakeRef.current.shake(8);
-      soundManager?.play('explosion');
     } else if (ability === 'heal') {
       hpRef.current = Math.min(10, hpRef.current + 2);
       setHp(hpRef.current);
-      soundManager?.play('levelUp');
     }
+    juiceRef.current?.fire('special', { title: `${meta.icon} ${meta.label}!`, color: meta.color, vib: [25, 30, 25] });
     flashEffect(`${meta.icon} ${meta.label} 발동!`);
   };
 
@@ -578,27 +596,37 @@ export default function ZombieGamePage() {
         });
       }
 
-      particlesRef.current.explode(z.x, z.y, z.special ? 1.1 : 0.8);
       shakeRef.current.shake(4);
       zombiesRef.current.splice(idx, 1);
-      scoreRef.current += input.length * 12 * (z.special ? 2 : 1); // 특수 좀비는 2배
+      const points = input.length * 12 * (z.special ? 2 : 1); // 특수 좀비는 2배
+      scoreRef.current += points;
       if (z.special && z.ability) triggerAbility(z.ability);
       setScore(scoreRef.current);
       killCountRef.current += 1;
       setKillCount(killCountRef.current);
+      {
+        const rect = canvas?.getBoundingClientRect();
+        juiceRef.current?.fire('hit', {
+          x: rect ? rect.left + z.x : undefined,
+          y: rect ? rect.top + z.y : undefined,
+          n: points,
+          text: `+${points}`,
+          color: z.color,
+          big: z.special ? 1.3 : 1,
+        });
+      }
       if (killCountRef.current % 10 === 0) {
         waveRef.current += 1;
         setWave(waveRef.current);
-        soundManager?.play('levelUp');
         // Heal 1 HP on wave up
         if (hpRef.current < 10) {
           hpRef.current = Math.min(10, hpRef.current + 1);
           setHp(hpRef.current);
         }
+        juiceRef.current?.fire('levelup', { title: `WAVE ${waveRef.current}!`, color: '#FECA57' });
       }
-      soundManager?.play('explosion');
     } else {
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss', { color: '#FF6B6B' });
     }
     setInput('');
   };

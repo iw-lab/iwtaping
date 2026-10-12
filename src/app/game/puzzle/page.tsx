@@ -10,6 +10,7 @@ import { useGameResult, hitAccuracy } from '@/hooks/useGameResult';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { wordGenerator } from '@/lib/content/word-generator';
 import { submitGameScore } from '@/lib/api/client';
+import { createGameJuice } from '@/lib/game/juice-table';
 
 interface WordEntry {
   word: string;
@@ -43,7 +44,18 @@ export default function PuzzleGamePage() {
   const attemptsRef = useRef(0); // 입력 시도 횟수 — 정확도 산출용(맞힌 수 = totalWords)
   /** 사전 단어들의 첫 글자 집합 — 어떤 끝글자가 이어갈 수 있는지(막다른지) 판정용 */
   const dictFirstCharsRef = useRef<Set<string>>(new Set());
+  const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 정답·오답·보너스
   const isKorean = settings.language === 'ko';
+
+  // 반응(주스) 인스턴스 — 캔버스가 없으므로 DOM 점수 숫자(punch)만 꽂는다.
+  useEffect(() => {
+    juiceRef.current = createGameJuice({
+      soundManager,
+      punch: { hit: '#puzzle-score' },
+      haptics: () => settings.sfx,
+    });
+    return () => juiceRef.current?.destroy();
+  }, [settings.sfx]);
 
   // 게임 종료 시 서버 순위 제출 (계정 없으면 무시)
   useEffect(() => {
@@ -205,7 +217,7 @@ export default function PuzzleGamePage() {
         ? `'${lastChar}'(으)로 시작하는 단어를 입력하세요!`
         : `Word must start with '${lastChar.toUpperCase()}'!`);
       setCombo(0);
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss');
       setInput('');
       return;
     }
@@ -213,13 +225,14 @@ export default function PuzzleGamePage() {
     if (usedWords.has(word)) {
       setMessage(isKorean ? '이미 사용한 단어입니다!' : 'Word already used!');
       setCombo(0);
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss');
       setInput('');
       return;
     }
 
     if (word.length < 2) {
       setMessage(isKorean ? '2글자 이상 입력하세요!' : 'Word must be at least 2 letters!');
+      juiceRef.current?.fire('miss');
       setInput('');
       return;
     }
@@ -230,7 +243,7 @@ export default function PuzzleGamePage() {
     if (!wellFormed) {
       setMessage(isKorean ? '완성된 한글 단어만 입력하세요!' : 'Letters only!');
       setCombo(0);
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss');
       setInput('');
       return;
     }
@@ -242,7 +255,7 @@ export default function PuzzleGamePage() {
     if (validWords.size > 0 && !validWords.has(lookup)) {
       setMessage(isKorean ? '사전에 없는 단어입니다!' : 'Not in the dictionary!');
       setCombo(0);
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss');
       setInput('');
       return;
     }
@@ -261,7 +274,7 @@ export default function PuzzleGamePage() {
     setUsedWords(newUsed);
     setTimeLeft(Math.min(timeLeft + 4, 20)); // Bonus time (난이도 완화)
     setMessage('');
-    soundManager?.play('keyClick');
+    juiceRef.current?.fire('hit', { n: Math.round(points), text: `+${Math.round(points)}` });
     setInput('');
 
     // Computer's turn
@@ -272,7 +285,7 @@ export default function PuzzleGamePage() {
       // Computer can't find a word - player wins bonus!
       setScore(s => s + 100);
       setMessage(isKorean ? '상대가 단어를 못 찾았습니다! +100점 보너스!' : "Opponent can't find a word! +100 bonus!");
-      soundManager?.play('levelUp');
+      juiceRef.current?.fire('special', { title: isKorean ? '+100 보너스!' : '+100 Bonus!', color: '#FECA57', vib: [25, 30, 25] });
       // Pick a new random starter
       const newStarter = wordPool.filter(w => !newUsed.has(w) && answerable(getLastChar(w)));
       if (newStarter.length > 0) {
@@ -388,7 +401,7 @@ export default function PuzzleGamePage() {
       <div className="flex justify-between items-center mb-4">
         <div>
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{isKorean ? '점수' : 'Score'} </span>
-          <span className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--color-primary)' }}>{score}</span>
+          <span id="puzzle-score" className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--color-primary)' }}>{score}</span>
           {combo > 1 && (
             <span className="ml-2 text-sm font-bold" style={{ color: 'var(--color-combo)' }}>{combo}x combo!</span>
           )}

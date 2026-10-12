@@ -12,6 +12,8 @@ import { generateKoreanSentence, generateEnglishSentence } from '@/lib/content/w
 import { fetchRaceGhosts, fetchLeaderboard } from '@/lib/api/client';
 import { useGameBgm } from '@/hooks/useGameBgm';
 import { useGameResult } from '@/hooks/useGameResult';
+import { soundManager } from '@/lib/sound/sound-manager';
+import { createGameJuice } from '@/lib/game/juice-table';
 
 interface Car {
   name: string;
@@ -55,7 +57,25 @@ export default function RaceGamePage() {
   const resultRef = useRef<TypingResult | null>(null);
   // 고스트가 먼저 골인해 강제 종료된 판인가 — 순위 제출·진행률 100% 처리를 건너뛴다.
   const lostRef = useRef(false);
+  const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 추월·우승·역전당함
+  const prevRankRef = useRef(1);
   const isKorean = settings.language === 'ko';
+
+  // 반응(주스) 인스턴스 — 레이스는 캔버스가 없어 DOM 레이어(pop·flash·banner)만 쓴다.
+  useEffect(() => {
+    juiceRef.current = createGameJuice({ soundManager, haptics: () => settings.sfx });
+    return () => juiceRef.current?.destroy();
+  }, [settings.sfx]);
+
+  // 플레이어가 상대를 추월할 때마다 "과하게" 반응 — 순위가 오를 때만 센다.
+  useEffect(() => {
+    if (status !== 'racing' || cars.length === 0) return;
+    const rank = [...cars].sort((a, b) => b.progress - a.progress).findIndex(c => c.isPlayer) + 1;
+    if (rank > 0 && rank < prevRankRef.current) {
+      juiceRef.current?.fire('hit', { text: isKorean ? '추월!' : 'Overtake!', color: '#1DD1A1' });
+    }
+    prevRankRef.current = rank || prevRankRef.current;
+  }, [cars, status, isKorean]);
 
   const loadText = async (): Promise<string> => {
     try {
@@ -157,6 +177,7 @@ export default function RaceGamePage() {
     setPlayerProgress(0);
     resultRef.current = null;
     lostRef.current = false;
+    prevRankRef.current = opponents.length + 1; // 출발은 전원 동률 — 꼴찌로 간주해 오탐 추월 방지
     setStatus('countdown');
     setCountdown(3);
   };
@@ -218,10 +239,15 @@ export default function RaceGamePage() {
     if (lostRef.current) {
       // 강제 종료(패배) — 진행률을 100으로 올리지도, 미완주 기록을 순위에 올리지도 않는다.
       setStatus('finished');
+      juiceRef.current?.fire('miss', { title: isKorean ? '패배...' : 'Defeated...', color: '#FF6B6B' });
       return;
     }
+    const finalRank = [...cars].sort((a, b) => b.progress - a.progress).findIndex(c => c.isPlayer) + 1;
     setCars(prev => prev.map(car => car.isPlayer ? { ...car, progress: 100 } : car));
     setStatus('finished');
+    juiceRef.current?.fire(finalRank === 1 ? 'special' : 'hit', finalRank === 1
+      ? { title: isKorean ? '우승!' : 'You Win!', color: '#FECA57', vib: [25, 30, 25] }
+      : { text: isKorean ? '완주!' : 'Finished!', color: '#1DD1A1' });
     // 레이스는 실제 타이핑 — WPM으로 game:race 순위 제출(실제 타건 로그로 검증).
     void submitScore({
       mode: 'game:race',

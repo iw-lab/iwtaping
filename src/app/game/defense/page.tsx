@@ -18,6 +18,7 @@ import {
   type LabelBox, type LabelRequest,
 } from '@/lib/game/renderer';
 import { Ability, ABILITY_META, FREEZE_MS, rollSpecial, pickAbility, drawSpecialMarker } from '@/lib/game/special-words';
+import { createGameJuice } from '@/lib/game/juice-table';
 
 const DEFENSE_SPRITES = {
   'defense-bg': '/game/defense/bg.webp',
@@ -41,6 +42,8 @@ interface Enemy {
   ability?: Ability;
   /** 말풍선을 머리 위에서 추가로 밀어 올린 거리(px) — 프레임 간 부드럽게 따라간다 */
   labelShift?: number;
+  /** 격파 확정 시 획득 점수(화살 명중 시점에 반응(주스) 팝업 텍스트로 쓴다) */
+  points?: number;
 }
 
 interface Arrow {
@@ -82,9 +85,25 @@ export default function DefenseGamePage() {
   const attemptsRef = useRef(0); // 입력 시도 횟수 — 정확도 산출용(맞힌 수 = killCountRef)
   const particlesRef = useRef(new ParticleSystem());
   const shakeRef = useRef(new ScreenShake());
+  const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 격파·피격·능력·웨이브업
   const isKorean = settings.language === 'ko';
 
   useEffect(() => { preloadSprites(DEFENSE_SPRITES); }, []);
+
+  // 반응(주스) 인스턴스 — burst는 이 게임의 파티클(캔버스 로컬 좌표)로, sfx는 기존 soundManager로 연결한다.
+  useEffect(() => {
+    juiceRef.current = createGameJuice({
+      soundManager,
+      burst: (o: { x: number; y: number; big?: number }) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        particlesRef.current.explode(o.x - rect.left, o.y - rect.top, (o.big ?? 1) * 0.8);
+      },
+      haptics: () => settings.sfx,
+    });
+    return () => juiceRef.current?.destroy();
+  }, [settings.sfx]);
 
   useEffect(() => {
     wordGenerator.reset();
@@ -392,7 +411,10 @@ export default function DefenseGamePage() {
               ctx.restore();
               return;
             }
-            soundManager?.play('keyError');
+            {
+              const rect = canvas.getBoundingClientRect();
+              juiceRef.current?.fire('miss', { x: rect.left + (W - 120), y: rect.top + e.y, color: '#FF6B6B' });
+            }
             continue;
           }
         }
@@ -465,9 +487,15 @@ export default function DefenseGamePage() {
           const dy = a.y - target.y;
           if (Math.sqrt(dx * dx + dy * dy) < 25) {
             // Arrow hit! Explode and remove enemy
-            particles.explode(target.x, target.y, 0.7);
             shake.shake(3);
-            soundManager?.play('explosion');
+            {
+              const rect = canvas.getBoundingClientRect();
+              juiceRef.current?.fire('hit', {
+                x: rect.left + target.x, y: rect.top + target.y,
+                n: target.points, text: target.points ? `+${target.points}` : undefined,
+                color: target.color, big: target.special ? 1.3 : 1,
+              });
+            }
             enemiesRef.current = enemiesRef.current.filter(e => e.id !== target.id);
             continue; // Arrow consumed
           }
@@ -625,7 +653,6 @@ export default function DefenseGamePage() {
     const meta = ABILITY_META[ability];
     if (ability === 'freeze') {
       freezeUntilRef.current = performance.now() + FREEZE_MS;
-      soundManager?.play('achievement');
     } else if (ability === 'clear') {
       // 화면의 모든 적군 격퇴 — 폭발 + 골드 보너스
       for (const e of enemiesRef.current) {
@@ -638,12 +665,11 @@ export default function DefenseGamePage() {
       setScore(scoreRef.current);
       setGold(goldRef.current);
       shakeRef.current.shake(8);
-      soundManager?.play('explosion');
     } else if (ability === 'heal') {
       castleHpRef.current = Math.min(20, castleHpRef.current + 4);
       setCastleHp(castleHpRef.current);
-      soundManager?.play('levelUp');
     }
+    juiceRef.current?.fire('special', { title: `${meta.icon} ${ability === 'heal' ? '성 수리' : meta.label}!`, color: meta.color, vib: [25, 30, 25] });
     flashEffect(`${meta.icon} ${ability === 'heal' ? '성 수리' : meta.label} 발동!`);
   };
 
@@ -666,7 +692,9 @@ export default function DefenseGamePage() {
         arrowsRef.current.push({ x: castleX - 30, y: castleTop, targetId: enemy.id, speed: 12, angle });
       }
       // Score updates immediately (player gets feedback)
-      scoreRef.current += input.length * 10 * (enemy.special ? 2 : 1); // 특수 병사는 2배
+      const points = input.length * 10 * (enemy.special ? 2 : 1); // 특수 병사는 2배
+      enemy.points = points; // 화살 명중 시 반응(주스) 팝업에 쓴다
+      scoreRef.current += points;
       if (enemy.special && enemy.ability) triggerAbility(enemy.ability);
       setScore(scoreRef.current);
       goldRef.current += 5 + Math.floor(input.length / 2);
@@ -676,14 +704,14 @@ export default function DefenseGamePage() {
       if (killCountRef.current % 8 === 0) {
         waveRef.current += 1;
         setWave(waveRef.current);
-        soundManager?.play('levelUp');
+        juiceRef.current?.fire('levelup', { title: `WAVE ${waveRef.current}!`, color: '#FECA57' });
         if (castleHpRef.current < 20) {
           castleHpRef.current = Math.min(20, castleHpRef.current + 2);
           setCastleHp(castleHpRef.current);
         }
       }
     } else {
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss', { color: '#FF6B6B' });
     }
     setInput('');
   };

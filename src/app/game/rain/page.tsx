@@ -17,6 +17,7 @@ import {
   wordBubbleWidth, wordBubbleHeight, resolveLabels, easeLabelShift,
   type Star, type LabelRequest,
 } from '@/lib/game/renderer';
+import { createGameJuice } from '@/lib/game/juice-table';
 
 /**
  * 단어를 놓쳐 바닥에 닿을 때 깎이는 pH. 시작 pH가 10.0이므로 13번 놓치면 게임오버다.
@@ -87,6 +88,7 @@ export default function RainGamePage() {
   const particlesRef = useRef(new ParticleSystem());
   const shakeRef = useRef(new ScreenShake());
   const bgImageRef = useRef<HTMLImageElement | null>(null);
+  const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 격파·피격·능력·레벨업
   const isKorean = settings.language === 'ko';
 
   // 네오/사이버펑크 배경 씬(AI 생성). 로드 전에는 절차적 그라데이션으로 폴백한다.
@@ -95,6 +97,21 @@ export default function RainGamePage() {
     img.src = '/game/rain/bg.webp';
     img.onload = () => { bgImageRef.current = img; };
   }, []);
+
+  // 반응(주스) 인스턴스 — burst는 이 게임의 파티클(캔버스 로컬 좌표)로, sfx는 기존 soundManager로 연결한다.
+  useEffect(() => {
+    juiceRef.current = createGameJuice({
+      soundManager,
+      burst: (o: { x: number; y: number; big?: number }) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        particlesRef.current.explode(o.x - rect.left, o.y - rect.top, (o.big ?? 1) * 0.7);
+      },
+      haptics: () => settings.sfx,
+    });
+    return () => juiceRef.current?.destroy();
+  }, [settings.sfx]);
 
   useEffect(() => {
     wordGenerator.reset();
@@ -344,7 +361,10 @@ export default function RainGamePage() {
             colors: [word.color, '#FF6B6B'],
             spread: Math.PI, angle: -Math.PI / 2,
           });
-          soundManager?.play('keyError');
+          {
+            const rect = canvas.getBoundingClientRect();
+            juiceRef.current?.fire('miss', { x: rect.left + word.x, y: rect.top + (H - 40), color: '#FF6B6B' });
+          }
           if (phRef.current <= 0) {
             setStatus('gameover');
             cancelAnimationFrame(animFrameRef.current);
@@ -547,7 +567,6 @@ export default function RainGamePage() {
     const meta = ABILITY_META[ability];
     if (ability === 'freeze') {
       freezeUntilRef.current = performance.now() + FREEZE_MS;
-      soundManager?.play('achievement');
     } else if (ability === 'clear') {
       // 화면의 모든 단어를 정화 — 각 단어 폭발 + 보너스 점수
       for (const w of wordsRef.current) {
@@ -556,12 +575,11 @@ export default function RainGamePage() {
       }
       wordsRef.current = [];
       setScore(scoreRef.current);
-      soundManager?.play('explosion');
     } else if (ability === 'heal') {
       phRef.current = Math.min(10, phRef.current + 2);
       setPh(phRef.current);
-      soundManager?.play('levelUp');
     }
+    juiceRef.current?.fire('special', { title: `${meta.icon} ${meta.label}!`, color: meta.color, vib: [25, 30, 25] });
     flashEffect(`${meta.icon} ${meta.label} 발동!`);
   };
 
@@ -572,8 +590,6 @@ export default function RainGamePage() {
     const idx = wordsRef.current.findIndex(w => w.text === input.trim());
     if (idx >= 0) {
       const word = wordsRef.current[idx];
-      // 화면에 보이던 자리(가로 비켜남 반영)에서 터뜨린다.
-      particlesRef.current.explode(word.x + (word.labelShift ?? 0), word.y, word.special ? 1.0 : 0.6);
       wordsRef.current.splice(idx, 1);
       // 특수단어는 2배 점수 + 능력 발동
       const points = input.length * 10 * (word.special ? 2 : 1);
@@ -585,16 +601,28 @@ export default function RainGamePage() {
       setMaxCombo(m => Math.max(m, comboRef.current));
       killRef.current += 1;
       setDestroyCount(killRef.current);
+      {
+        const canvas = canvasRef.current;
+        const rect = canvas?.getBoundingClientRect();
+        const wx = word.x + (word.labelShift ?? 0);
+        juiceRef.current?.fire('hit', {
+          x: rect ? rect.left + wx : undefined,
+          y: rect ? rect.top + word.y : undefined,
+          n: points,
+          text: `+${points}`,
+          color: word.color,
+          big: word.special ? 1.3 : 1,
+        });
+      }
       if (killRef.current % 15 === 0) {
         levelRef.current += 1;
         setLevel(levelRef.current);
-        soundManager?.play('levelUp');
+        juiceRef.current?.fire('levelup', { title: `LEVEL ${levelRef.current}!`, color: '#A29BFE' });
       }
-      soundManager?.play('explosion');
     } else {
       comboRef.current = 0;
       setCombo(0);
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss', { color: '#FF6B6B' });
     }
     setInput('');
   };

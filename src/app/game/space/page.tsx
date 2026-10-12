@@ -19,6 +19,7 @@ import {
   type Star, type LabelBox, type LabelRequest,
 } from '@/lib/game/renderer';
 import { Ability, ABILITY_META, FREEZE_MS, rollSpecial, pickAbility, drawSpecialMarker } from '@/lib/game/special-words';
+import { createGameJuice } from '@/lib/game/juice-table';
 
 const SPACE_SPRITES = {
   'space-bg': '/game/space/bg.webp',
@@ -45,6 +46,8 @@ interface Enemy {
   ability?: Ability;
   /** 말풍선을 기본 위치에서 추가로 밀어낸 거리(px) — 프레임 간 부드럽게 따라간다 */
   labelShift?: number;
+  /** 격파 확정 시 획득 점수(미사일 명중 시점에 반응(주스) 팝업 텍스트로 쓴다) */
+  points?: number;
 }
 
 interface Projectile {
@@ -90,10 +93,26 @@ export default function SpaceGamePage() {
   const starsRef = useRef<Star[]>([]);
   const particlesRef = useRef(new ParticleSystem());
   const shakeRef = useRef(new ScreenShake());
+  const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 격추·피격·능력·레벨업
   const isKorean = settings.language === 'ko';
 
   // Preload AI-generated sprites (procedural art stays as fallback until ready)
   useEffect(() => { preloadSprites(SPACE_SPRITES); }, []);
+
+  // 반응(주스) 인스턴스 — burst는 이 게임의 파티클(캔버스 로컬 좌표)로, sfx는 기존 soundManager로 연결한다.
+  useEffect(() => {
+    juiceRef.current = createGameJuice({
+      soundManager,
+      burst: (o: { x: number; y: number; big?: number }) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        particlesRef.current.explode(o.x - rect.left, o.y - rect.top, (o.big ?? 1) * 0.9);
+      },
+      haptics: () => settings.sfx,
+    });
+    return () => juiceRef.current?.destroy();
+  }, [settings.sfx]);
 
   // Load word pool with procedural generation
   useEffect(() => {
@@ -321,7 +340,10 @@ export default function SpaceGamePage() {
             setShield(shieldRef.current);
             shake.shake(8);
             particles.explode(e.x, e.y, 0.5);
-            soundManager?.play('keyError');
+            {
+              const rect = canvas.getBoundingClientRect();
+              juiceRef.current?.fire('miss', { x: rect.left + e.x, y: rect.top + e.y, color: '#FF6B6B' });
+            }
             if (shieldRef.current <= 0) {
               particles.explode(cx, cy, 2);
               setStatus('gameover');
@@ -421,9 +443,15 @@ export default function SpaceGamePage() {
           const d = Math.hypot(p.x - target.x, p.y - target.y);
           if (d < 25) {
             // Missile hit! Destroy enemy
-            particles.explode(target.x, target.y, target.isBoss ? 2 : 1);
             shake.shake(target.isBoss ? 10 : 4);
-            soundManager?.play('explosion');
+            {
+              const rect = canvas.getBoundingClientRect();
+              juiceRef.current?.fire('hit', {
+                x: rect.left + target.x, y: rect.top + target.y,
+                n: target.points, text: target.points ? `+${target.points}` : undefined,
+                color: target.color, big: target.isBoss ? 2 : target.special ? 1.3 : 1,
+              });
+            }
             enemiesRef.current = enemiesRef.current.filter(e => e.id !== target.id);
             continue; // Missile consumed
           }
@@ -493,7 +521,6 @@ export default function SpaceGamePage() {
     const meta = ABILITY_META[ability];
     if (ability === 'freeze') {
       freezeUntilRef.current = performance.now() + FREEZE_MS;
-      soundManager?.play('achievement');
     } else if (ability === 'clear') {
       // 화면의 모든 적기 격추 — 폭발 + 보너스 점수
       for (const e of enemiesRef.current) {
@@ -504,12 +531,11 @@ export default function SpaceGamePage() {
       enemiesRef.current = enemiesRef.current.filter(e => e.dying);
       setScore(scoreRef.current);
       shakeRef.current.shake(8);
-      soundManager?.play('explosion');
     } else if (ability === 'heal') {
       shieldRef.current = Math.min(10, shieldRef.current + 2);
       setShield(shieldRef.current);
-      soundManager?.play('levelUp');
     }
+    juiceRef.current?.fire('special', { title: `${meta.icon} ${meta.label}!`, color: meta.color, vib: [25, 30, 25] });
     flashEffect(`${meta.icon} ${meta.label} 발동!`);
   }, [flashEffect]);
 
@@ -551,6 +577,7 @@ export default function SpaceGamePage() {
       const comboBonus = Math.floor(comboRef.current / 5) * 0.5;
       const bossBonus = enemy.isBoss ? 5 : enemy.special ? 2 : 1; // 특수 적기는 2배
       const points = Math.round(basePoints * (1 + comboBonus) * bossBonus);
+      enemy.points = points; // 미사일 명중 시 반응(주스) 팝업에 쓴다
 
       scoreRef.current += points;
       if (enemy.special && enemy.ability) triggerAbility(enemy.ability);
@@ -565,18 +592,18 @@ export default function SpaceGamePage() {
       if (killCountRef.current % 10 === 0) {
         levelRef.current += 1;
         setLevel(levelRef.current);
-        soundManager?.play('levelUp');
+        juiceRef.current?.fire('levelup', { title: `LEVEL ${levelRef.current}!`, color: '#48DBFB' });
         // Restore 1 shield on level up
         if (shieldRef.current < 10) {
           shieldRef.current = Math.min(10, shieldRef.current + 1);
           setShield(shieldRef.current);
         }
       }
-      // explosion sound plays on missile impact in animation loop
+      // hit(sfx+burst)는 미사일이 명중하는 애니메이션 루프에서 fire한다
     } else {
       comboRef.current = 0;
       setCombo(0);
-      soundManager?.play('keyError');
+      juiceRef.current?.fire('miss', { color: '#FF6B6B' });
     }
     setInput('');
     targetRef.current = null;
