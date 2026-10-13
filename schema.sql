@@ -52,6 +52,9 @@ CREATE TABLE IF NOT EXISTS scores (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_nonce ON scores (nonce);
 CREATE INDEX IF NOT EXISTS idx_scores_rank ON scores (mode, verify_status, kpm DESC);
 CREATE INDEX IF NOT EXISTS idx_scores_daily ON scores (mode, day_key, verify_status, kpm DESC);
+-- 주간 순위(기본 period)가 day_key 색인처럼 주 단위로 안 묶여 mode+verify_status 전체(모든 주)를
+-- 훑었다 — leaderboard/my-rank 기본값이라 daily보다 더 자주 맞는다. week_key 로 주 단위 경계.
+CREATE INDEX IF NOT EXISTS idx_scores_weekly ON scores (mode, week_key, verify_status, kpm DESC);
 CREATE INDEX IF NOT EXISTS idx_scores_user ON scores (user_id, created_at DESC);
 
 -- 발급된 챌린지 (nonce 선발급 → 제출 시 대조)
@@ -152,3 +155,5 @@ CREATE TABLE IF NOT EXISTS transfer_codes (
   attempts    INTEGER NOT NULL DEFAULT 0,
   used_at     INTEGER
 );
+-- 발급 시 "미사용 코드 무효화" DELETE WHERE user_id=? 전체 훑기 방지(FK 자식열 색인).
+CREATE INDEX IF NOT EXISTS idx_transfer_codes_user ON transfer_codes (user_id);
