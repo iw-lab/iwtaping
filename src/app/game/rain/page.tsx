@@ -26,6 +26,7 @@ import {
 import type { SeedRainScene } from '@/lib/game3d/seed-rain-scene';
 import { ModePicker, useGameMode, saveBest, todayKey, type GameMode } from '@/components/game/ModePicker';
 import { FullscreenButton } from '@/components/game/FullscreenButton';
+import { SchoolRankCard } from '@/components/school/SchoolRankCard';
 import { Snowflake, Zap, Droplet, Sprout, type LucideIcon } from 'lucide-react';
 
 /** 특수단어(어려운 단어)를 맞히면 발동하는 능력. */
@@ -421,6 +422,7 @@ export default function RainGamePage() {
   if (status === 'menu') {
     return (
       <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
+        <div className="text-left mb-4"><SchoolRankCard /></div>
         <div className="flex justify-end mb-2"><FullscreenButton /></div>
         <Sprout className="w-16 h-16 mx-auto mb-3" style={{ color: '#3FBF5A' }} aria-hidden />
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
@@ -438,7 +440,7 @@ export default function RainGamePage() {
           </p>
         )}
         <ModePicker game={GAME_ID} value={mode} onChange={setMode} />
-        <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
+        <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
         <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
           {is3d ? '3D 화면' : '가벼운 화면(2D)'}
         </p>
@@ -479,7 +481,7 @@ export default function RainGamePage() {
             <div className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: '#00B894' }}>{destroyCount}</div>
           </Card>
         </div>
-        <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
+        <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
         <div className="mt-3"><Button variant="ghost" onClick={() => setStatus('menu')}>{isKorean ? '모드 바꾸기' : 'Change mode'}</Button></div>
       </div>
     );

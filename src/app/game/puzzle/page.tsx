@@ -19,6 +19,7 @@ import {
 import type { PuzzleScene } from '@/lib/game3d/puzzle-scene';
 import { ModePicker, useGameMode, saveBest, todayKey, type ModeInfo } from '@/components/game/ModePicker';
 import { FullscreenButton } from '@/components/game/FullscreenButton';
+import { SchoolRankCard } from '@/components/school/SchoolRankCard';
 
 const GAME_ID = 'puzzle';
 const PUZZLE_MODES: ModeInfo[] = [
@@ -292,6 +293,7 @@ export default function PuzzleGamePage() {
   if (status === 'menu') {
     return (
       <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
+        <div className="text-left mb-4"><SchoolRankCard /></div>
         <div className="flex justify-end mb-2"><FullscreenButton /></div>
         <div className="flex justify-center mb-4"><Link2 className="w-14 h-14" style={{ color: '#FD79A8' }} /></div>
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
@@ -316,7 +318,7 @@ export default function PuzzleGamePage() {
           </Card>
         </div>
         <ModePicker game={GAME_ID} value={mode} onChange={setMode} modes={PUZZLE_MODES} />
-        <Button size="lg" onClick={() => schoolGate(startGame)}>
+        <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>
           {isKorean ? '게임 시작' : 'Start Game'}
         </Button>
         <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -362,7 +364,7 @@ export default function PuzzleGamePage() {
             </div>
           </Card>
         </div>
-        <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 도전' : 'Play Again'}</Button>
+        <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 도전' : 'Play Again'}</Button>
         <div className="mt-3"><Button variant="ghost" onClick={() => setStatus('menu')}>{isKorean ? '모드 바꾸기' : 'Change mode'}</Button></div>
       </div>
     );

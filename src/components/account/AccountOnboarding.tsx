@@ -121,7 +121,7 @@ export function AccountOnboarding() {
         ))}
       </div>
       <button type="button" onClick={() => { setChoices(genNickChoices(3)); setNickname(''); }}
-        className="w-full mb-3 py-2 rounded-lg text-sm inline-flex items-center justify-center gap-1"
+        className="w-full mb-3 py-2 min-h-[44px] rounded-lg text-sm inline-flex items-center justify-center gap-1"
         style={{ color: 'var(--text-secondary)' }}>
         <RefreshCw className="w-4 h-4" /> 다른 이름 보기
       </button>
@@ -132,7 +132,7 @@ export function AccountOnboarding() {
             key={g.id}
             type="button"
             onClick={() => setGrade(grade === g.id ? undefined : g.id)}
-            className="flex-1 py-2 rounded-lg text-sm font-medium border transition-colors"
+            className="flex-1 py-2 min-h-[44px] rounded-lg text-sm font-medium border transition-colors"
             style={{
               background: grade === g.id ? 'var(--color-primary)' : 'var(--bg-tertiary)',
               color: grade === g.id ? '#fff' : 'var(--text-secondary)',

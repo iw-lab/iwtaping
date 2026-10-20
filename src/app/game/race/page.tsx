@@ -23,6 +23,7 @@ import {
 import type { RaceScene } from '@/lib/game3d/race-scene';
 import { ModePicker, useGameMode, todayKey, type ModeInfo } from '@/components/game/ModePicker';
 import { FullscreenButton } from '@/components/game/FullscreenButton';
+import { SchoolRankCard } from '@/components/school/SchoolRankCard';
 
 const GAME_ID = 'race';
 
@@ -307,6 +308,7 @@ export default function RaceGamePage() {
   if (status === 'menu') {
     return (
       <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
+        <div className="text-left mb-4"><SchoolRankCard /></div>
         <div className="flex justify-end mb-2"><FullscreenButton /></div>
         <div className="text-6xl mb-4">
           <svg viewBox="0 0 80 80" width="80" height="80" className="mx-auto">
@@ -322,7 +324,6 @@ export default function RaceGamePage() {
               <circle cx="12" cy="10" r="4" fill="#333" stroke="#555" strokeWidth="1"/>
               <rect x="18" y="-2" width="8" height="2" rx="1" fill="#FF6B6B" opacity="0.8"/>
             </g>
-            <text x="40" y="70" textAnchor="middle" fill="#FECA57" fontSize="8" fontFamily="monospace" fontWeight="bold">RACE</text>
           </svg>
         </div>
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
@@ -339,7 +340,7 @@ export default function RaceGamePage() {
           {isKorean ? '전국 순위 기록을 고스트로 불러옵니다 · 기록이 없으면 AI가 대신 뜁니다' : 'Ghosts are loaded from the national leaderboard · AI fills in when none are available'}
         </p>
         <ModePicker game={GAME_ID} value={mode} onChange={setMode} modes={RACE_MODES} />
-        <Button size="lg" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '레이스 시작' : 'Start Race'}</Button>
+        <Button size="lg" data-gb="play" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '레이스 시작' : 'Start Race'}</Button>
         <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
           {is3d ? '3D 화면' : '가벼운 화면(2D)'}
         </p>
@@ -473,7 +474,7 @@ export default function RaceGamePage() {
               </div>
             ))}
           </div>
-          <Button size="lg" className="mt-6" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '다시 도전' : 'Race Again'}</Button>
+          <Button size="lg" className="mt-6" data-gb="play" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '다시 도전' : 'Race Again'}</Button>
           <div className="mt-3"><Button variant="ghost" onClick={() => setStatus('menu')}>{isKorean ? '모드 바꾸기' : 'Change mode'}</Button></div>
         </div>
       )}

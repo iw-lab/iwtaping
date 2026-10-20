@@ -29,6 +29,7 @@ import {
 import type { SlimePlaygroundScene } from '@/lib/game3d/slime-playground-scene';
 import { ModePicker, useGameMode, saveBest, todayKey } from '@/components/game/ModePicker';
 import { FullscreenButton } from '@/components/game/FullscreenButton';
+import { SchoolRankCard } from '@/components/school/SchoolRankCard';
 
 const ZOMBIE_SPRITES = {
   'zombie-bg': '/game/zombie/bg.webp',
@@ -573,6 +574,7 @@ export default function ZombieGamePage() {
 
   if (status === 'menu') return (
     <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
+      <div className="text-left mb-4"><SchoolRankCard /></div>
       <div className="flex justify-end mb-2"><FullscreenButton /></div>
       <div className="text-6xl mb-4">
         <svg viewBox="0 0 80 80" width="80" height="80" className="mx-auto">
@@ -583,7 +585,6 @@ export default function ZombieGamePage() {
             <circle cx="7" cy="-4" r="3" fill="#2a2450"/>
             <ellipse cx="-9" cy="-11" rx="4" ry="2.6" fill="#ffffff" opacity="0.8"/>
           </g>
-          <text x="40" y="70" textAnchor="middle" fill="#FECA57" fontSize="8" fontFamily="monospace" fontWeight="bold">PLAYGROUND</text>
         </svg>
       </div>
       <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "'Outfit'" }}>
@@ -599,7 +600,7 @@ export default function ZombieGamePage() {
         </p>
       )}
       <ModePicker game={GAME_ID} value={mode} onChange={setMode} />
-      <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
+      <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
       <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
         {is3d ? '3D 화면' : '가벼운 화면(2D)'}
       </p>
@@ -631,7 +632,7 @@ export default function ZombieGamePage() {
           <div className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: '#55E6C1' }}>{purifyCount}</div>
         </Card>
       </div>
-      <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
+      <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
       <div className="mt-3"><Button variant="ghost" onClick={() => setStatus('menu')}>{isKorean ? '모드 바꾸기' : 'Change mode'}</Button></div>
     </div>
   );

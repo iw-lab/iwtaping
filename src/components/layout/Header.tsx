@@ -42,7 +42,7 @@ export function Header() {
       }}
     >
       <div className="max-w-[1400px] mx-auto h-[var(--header-height)] flex items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 no-underline">
+        <Link href="/" className="flex items-center gap-2 no-underline min-h-[44px]">
           <span className="text-2xl font-extrabold neon-text" style={{ fontFamily: "'Outfit', sans-serif", color: 'var(--color-primary)' }}>
             TypingVerse
           </span>
@@ -55,7 +55,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 no-underline ${
+                className={`inline-flex items-center min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 no-underline ${
                   isActive
                     ? 'text-[var(--color-primary)]'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -104,7 +104,7 @@ export function Header() {
           <ThemeToggle />
 
           <button
-            className="md:hidden p-2 rounded-lg"
+            className="md:hidden p-2 rounded-lg min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
             style={{ color: 'var(--text-secondary)' }}
             onClick={() => setMobileOpen(!mobileOpen)}
           >

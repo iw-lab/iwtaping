@@ -27,6 +27,7 @@ import {
 } from '@/lib/game/defense/core';
 import type { DefenseScene } from '@/lib/game3d/defense-scene';
 import { FullscreenButton } from '@/components/game/FullscreenButton';
+import { SchoolRankCard } from '@/components/school/SchoolRankCard';
 import { ModePicker, useGameMode, saveBest, todayKey } from '@/components/game/ModePicker';
 import { Snowflake, Zap, Heart } from 'lucide-react';
 
@@ -476,6 +477,7 @@ export default function DefenseGamePage() {
   if (status === 'menu') {
     return (
       <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
+        <div className="text-left mb-4"><SchoolRankCard /></div>
         <div className="flex justify-end mb-2"><FullscreenButton /></div>
         <div className="text-6xl mb-4">
           <svg viewBox="0 0 80 80" width="80" height="80" className="mx-auto">
@@ -509,7 +511,7 @@ export default function DefenseGamePage() {
           </p>
         )}
         <ModePicker game="defense" value={mode} onChange={setMode} />
-        <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
+        <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
         <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
           {is3d ? '3D 화면' : '가벼운 화면(2D)'}
         </p>
@@ -539,7 +541,7 @@ export default function DefenseGamePage() {
           <div className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: '#FECA57' }}>{gold}</div>
         </Card>
       </div>
-      <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
+      <Button size="lg" data-gb="play" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
     </div>
   );
 

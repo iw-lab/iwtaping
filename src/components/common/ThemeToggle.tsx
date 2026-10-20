@@ -23,7 +23,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-lg transition-colors hover:opacity-80"
+      className="p-2 rounded-lg transition-colors hover:opacity-80 min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
       style={{ color: 'var(--text-secondary)' }}
       aria-label="테마 전환"
     >

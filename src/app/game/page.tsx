@@ -32,7 +32,7 @@ const RainIcon = () => (
     <line x1="24" y1="16" x2="22" y2="30" stroke="#A29BFE" strokeWidth="1" opacity="0.4"/>
     <line x1="40" y1="14" x2="38" y2="28" stroke="#6C5CE7" strokeWidth="1" opacity="0.5"/>
     <rect x="14" y="34" width="36" height="18" rx="4" fill="#1A1A4E" stroke="#6C5CE7" strokeWidth="1.2"/>
-    <text x="32" y="47" textAnchor="middle" fill="#00D2D3" fontSize="10" fontFamily="monospace" fontWeight="bold">ABC</text>
+    <text x="32" y="47" textAnchor="middle" fill="#00D2D3" fontSize="12" fontFamily="monospace" fontWeight="bold">ABC</text>
   </svg>
 );
 

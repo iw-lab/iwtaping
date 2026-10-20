@@ -36,7 +36,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--key-border)]">
             <h2 className="text-lg font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{title}</h2>
-            <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70" style={{ color: 'var(--text-muted)' }}>
+            <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70 min-w-[44px] min-h-[44px] inline-flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>

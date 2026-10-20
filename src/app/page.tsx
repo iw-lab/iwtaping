@@ -338,7 +338,7 @@ function PracticeIcon({ type }: { type: string }) {
     code: (
       <svg viewBox="0 0 40 40" width={size} height={size}>
         <rect width="40" height="40" rx="10" fill="rgba(72,219,251,0.15)" />
-        <text x="12" y="24" fill="#48DBFB" fontSize="10" fontFamily="'JetBrains Mono'" fontWeight="bold">&lt;/&gt;</text>
+        <text x="8" y="25" fill="#48DBFB" fontSize="12" fontFamily="'JetBrains Mono'" fontWeight="bold">&lt;/&gt;</text>
       </svg>
     ),
     speed: (
