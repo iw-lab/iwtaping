@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { TypingResult } from '@/types/typing';
 import { koreanTranscriptions, TranscriptionPassage } from '@/data/korean/transcription';
 import { shuffleArray } from '@/lib/utils/helpers';
+import { PenLine, BookOpen } from 'lucide-react';
 
 interface TranscriptionRecord {
   passageId: string;
@@ -124,7 +125,11 @@ export default function TranscribePage() {
           <TypingArea key={current.id} text={current.text} onComplete={handleComplete} mode="long" />
           <div className="flex justify-center mt-4">
             <Button variant={justSaved ? 'primary' : 'secondary'} onClick={nextPassage}>
-              {justSaved ? '필사책에 담고 다음 글 ✍️' : '다른 글 고르기'}
+              {justSaved ? (
+                <span className="inline-flex items-center gap-1.5">필사책에 담고 다음 글 <PenLine className="w-4 h-4" /></span>
+              ) : (
+                '다른 글 고르기'
+              )}
             </Button>
           </div>
         </>
@@ -133,7 +138,7 @@ export default function TranscribePage() {
       {/* 내 필사책 */}
       <div className="mt-10">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold">📖 내 필사책</h2>
+          <h2 className="text-lg font-bold flex items-center gap-1.5"><BookOpen className="w-4 h-4" /> 내 필사책</h2>
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {records.length}편 · {totalChars.toLocaleString()}자 필사
           </span>

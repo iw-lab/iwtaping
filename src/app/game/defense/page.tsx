@@ -19,6 +19,8 @@ import {
 } from '@/lib/game/renderer';
 import { Ability, ABILITY_META, FREEZE_MS, rollSpecial, pickAbility, drawSpecialMarker } from '@/lib/game/special-words';
 import { createGameJuice } from '@/lib/game/juice-table';
+import { drawVectorIcon, ICON_SNOWFLAKE } from '@/lib/game/canvas-icons';
+import { AbilityIcon } from '@/components/common/AbilityIcon';
 
 const DEFENSE_SPRITES = {
   'defense-bg': '/game/defense/bg.webp',
@@ -68,7 +70,7 @@ export default function DefenseGamePage() {
   const [countdown, setCountdown] = useState(3);
   const [wordPool, setWordPool] = useState<string[]>([]);
   const [killCount, setKillCount] = useState(0);
-  const [effectMsg, setEffectMsg] = useState('');
+  const [effectMsg, setEffectMsg] = useState<{ ability: Ability; msg: string } | null>(null);
   const freezeUntilRef = useRef(0);
 
   const enemiesRef = useRef<Enemy[]>([]);
@@ -169,7 +171,7 @@ export default function DefenseGamePage() {
     nextIdRef.current = 0; lastSpawnRef.current = 0;
     scoreRef.current = 0; waveRef.current = 1; goldRef.current = 0;
     castleHpRef.current = 20; killCountRef.current = 0; attemptsRef.current = 0;
-    freezeUntilRef.current = 0; setEffectMsg('');
+    freezeUntilRef.current = 0; setEffectMsg(null);
     particlesRef.current = new ParticleSystem();
     shakeRef.current = new ScreenShake();
     setCountdown(3);
@@ -574,7 +576,8 @@ export default function DefenseGamePage() {
         ctx.font = "bold 13px 'Noto Sans KR', sans-serif";
         ctx.fillStyle = 'rgba(180,240,255,0.9)';
         ctx.textAlign = 'center';
-        ctx.fillText('❄️ 일시정지', W / 2, 62);
+        ctx.fillText('일시정지', W / 2, 62);
+        drawVectorIcon(ctx, ICON_SNOWFLAKE, W / 2 - ctx.measureText('일시정지').width / 2 - 11, 57, 16, 'rgba(180,240,255,0.9)');
         ctx.restore();
       }
 
@@ -643,9 +646,9 @@ export default function DefenseGamePage() {
     return () => cancelAnimationFrame(animRef.current);
   }, [status, wordPool, isKorean]);
 
-  const flashEffect = (msg: string) => {
-    setEffectMsg(msg);
-    setTimeout(() => setEffectMsg(''), 2200);
+  const flashEffect = (ability: Ability, msg: string) => {
+    setEffectMsg({ ability, msg });
+    setTimeout(() => setEffectMsg(null), 2200);
   };
 
   /** 특수 병사를 맞혔을 때 능력 발동. */
@@ -669,8 +672,9 @@ export default function DefenseGamePage() {
       castleHpRef.current = Math.min(20, castleHpRef.current + 4);
       setCastleHp(castleHpRef.current);
     }
-    juiceRef.current?.fire('special', { title: `${meta.icon} ${ability === 'heal' ? '성 수리' : meta.label}!`, color: meta.color, vib: [25, 30, 25] });
-    flashEffect(`${meta.icon} ${ability === 'heal' ? '성 수리' : meta.label} 발동!`);
+    const abilityLabel = ability === 'heal' ? '성 수리' : meta.label;
+    juiceRef.current?.fire('special', { title: `${abilityLabel}!`, color: meta.color, vib: [25, 30, 25] });
+    flashEffect(ability, `${abilityLabel} 발동!`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -783,9 +787,10 @@ export default function DefenseGamePage() {
       <div className="relative rounded-xl overflow-hidden border border-[var(--key-border)]" style={{ height: '450px' }}>
         <canvas ref={canvasRef} className="w-full h-full" style={{ display: 'block' }} />
         {effectMsg && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-bold pointer-events-none"
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-bold pointer-events-none flex items-center gap-1.5"
             style={{ background: 'rgba(254,202,87,0.92)', color: '#3A2A00', boxShadow: '0 4px 16px rgba(254,202,87,0.4)' }}>
-            {effectMsg}
+            <AbilityIcon ability={effectMsg.ability} className="w-4 h-4" />
+            {effectMsg.msg}
           </div>
         )}
       </div>

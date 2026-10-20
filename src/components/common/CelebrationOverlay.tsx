@@ -2,15 +2,23 @@
 
 import { create } from 'zustand';
 import { useEffect, useState } from 'react';
+import { Trophy, type LucideIcon } from 'lucide-react';
 import { getConfetti } from '@/lib/effects/confetti';
 
 type CelebrationType = 'personal_best' | 'achievement' | 'challenge_complete' | 'streak';
+
+/** 축하 배지에 쓰는 아이콘 이름 — 그리는 쪽(CelebrationOverlay)에서 lucide 컴포넌트로 바꾼다. */
+type CelebrationIcon = 'trophy';
+
+const CELEBRATION_ICONS: Record<CelebrationIcon, LucideIcon> = {
+  trophy: Trophy,
+};
 
 interface CelebrationEvent {
   type: CelebrationType;
   title: string;
   subtitle?: string;
-  icon?: string;
+  icon?: CelebrationIcon;
 }
 
 interface CelebrationStore {
@@ -55,7 +63,11 @@ export function CelebrationOverlay() {
         transition: 'opacity 0.3s, transform 0.3s',
       }}
     >
-      {event.icon && <div className="text-3xl mb-1">{event.icon}</div>}
+      {event.icon && (
+        <div className="flex justify-center mb-1">
+          {(() => { const Icon = CELEBRATION_ICONS[event.icon]; return <Icon className="w-8 h-8" style={{ color: 'var(--color-accent-warm)' }} />; })()}
+        </div>
+      )}
       <div className="text-sm font-bold gradient-text-warm">{event.title}</div>
       {event.subtitle && (
         <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>

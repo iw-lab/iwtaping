@@ -46,13 +46,14 @@ export interface QuestProgress {
   claimed: string[];
 }
 
+/** icon 은 이모지 글자가 아니라 lucide-react 아이콘 이름(kebab-case) — 그리는 쪽은 DataIcon 참고. */
 const TEMPLATES: QuestTemplate[] = [
-  { metric: 'sessions', title: '오늘의 연습', icon: '📝', targets: [2, 3, 5], unit: '회' },
-  { metric: 'keystrokes', title: '타수 채우기', icon: '⌨️', targets: [300, 600, 1000], unit: '타' },
-  { metric: 'accuracy_sessions', title: '정확하게', icon: '🎯', targets: [1, 2, 3], threshold: 95, unit: '회' },
-  { metric: 'games', title: '게임 한 판', icon: '🎮', targets: [1, 2, 3], unit: '판' },
-  { metric: 'combo', title: '콤보 만들기', icon: '🔥', targets: [20, 35, 50], unit: '콤보' },
-  { metric: 'minutes', title: '꾸준한 시간', icon: '⏱️', targets: [3, 5, 10], unit: '분' },
+  { metric: 'sessions', title: '오늘의 연습', icon: 'pencil', targets: [2, 3, 5], unit: '회' },
+  { metric: 'keystrokes', title: '타수 채우기', icon: 'keyboard', targets: [300, 600, 1000], unit: '타' },
+  { metric: 'accuracy_sessions', title: '정확하게', icon: 'target', targets: [1, 2, 3], threshold: 95, unit: '회' },
+  { metric: 'games', title: '게임 한 판', icon: 'gamepad', targets: [1, 2, 3], unit: '판' },
+  { metric: 'combo', title: '콤보 만들기', icon: 'flame', targets: [20, 35, 50], unit: '콤보' },
+  { metric: 'minutes', title: '꾸준한 시간', icon: 'timer', targets: [3, 5, 10], unit: '분' },
 ];
 
 const STORAGE_KEY = 'typingverse-quests';

@@ -13,6 +13,8 @@ import { useStatsStore } from '@/stores/useStatsStore';
 import { useMascotStore } from '@/stores/useMascotStore';
 import { getDailyChallenge, getChallengeStatus } from '@/lib/challenge/daily-challenge';
 import { formatTime, getToday } from '@/lib/utils/helpers';
+import { CloudRain, Rocket, CarFront, Castle, Skull, Link2, Keyboard, Gamepad2, Globe, BookOpen, Coins, Star } from 'lucide-react';
+import { DataIcon } from '@/components/common/DataIcon';
 
 const SLOGAN = '손끝으로 여는 무한한 세계';
 
@@ -27,12 +29,12 @@ const practiceCards = [
 ];
 
 const gameCards = [
-  { href: '/game/rain', icon: '🌧️', title: '산성비', desc: '떨어지는 단어 격파', color: '#6C5CE7' },
-  { href: '/game/space', icon: '🚀', title: '우주 방어', desc: '적 우주선 파괴', color: '#48DBFB' },
-  { href: '/game/race', icon: '🏎️', title: '타이핑 레이스', desc: 'AI와 속도 대결', color: '#FECA57' },
-  { href: '/game/defense', icon: '🏰', title: '킹덤 디펜스', desc: '성 방어 타이핑', color: '#00B894' },
-  { href: '/game/zombie', icon: '🧟', title: '좀비 서바이벌', desc: '좀비 물리치기', color: '#FF6B6B' },
-  { href: '/game/puzzle', icon: '🔗', title: '끝말잇기', desc: '단어 연결 게임', color: '#FD79A8' },
+  { href: '/game/rain', icon: CloudRain, title: '산성비', desc: '떨어지는 단어 격파', color: '#6C5CE7' },
+  { href: '/game/space', icon: Rocket, title: '우주 방어', desc: '적 우주선 파괴', color: '#48DBFB' },
+  { href: '/game/race', icon: CarFront, title: '타이핑 레이스', desc: 'AI와 속도 대결', color: '#FECA57' },
+  { href: '/game/defense', icon: Castle, title: '킹덤 디펜스', desc: '성 방어 타이핑', color: '#00B894' },
+  { href: '/game/zombie', icon: Skull, title: '좀비 서바이벌', desc: '좀비 물리치기', color: '#FF6B6B' },
+  { href: '/game/puzzle', icon: Link2, title: '끝말잇기', desc: '단어 연결 게임', color: '#FD79A8' },
 ];
 
 export default function Home() {
@@ -164,7 +166,7 @@ export default function Home() {
           <XPBarDetailed />
           <div className="flex items-center justify-between mt-3">
             <span className="flex items-center gap-1 text-xs">
-              <span>🪙</span>
+              <Coins className="w-3.5 h-3.5" style={{ color: 'var(--color-accent-warm)' }} />
               <span style={{ color: 'var(--color-accent-warm)', fontFamily: "'JetBrains Mono'", fontWeight: 'bold' }}>{progress.coins}</span>
             </span>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -186,7 +188,7 @@ export default function Home() {
             )}
             <h3 className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>오늘의 챌린지</h3>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">{challenge.icon}</span>
+              <DataIcon name={challenge.icon} className="w-7 h-7" style={{ color: 'var(--color-primary)' }} />
               <div>
                 <div className="text-base font-bold">{challenge.title}</div>
                 <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -197,7 +199,13 @@ export default function Home() {
             {challengeStatus.completed ? (
               <div className="flex items-center gap-1">
                 {[1, 2, 3].map(s => (
-                  <span key={s} className="text-sm" style={{ opacity: s <= challengeStatus.stars ? 1 : 0.2 }}>⭐</span>
+                  <Star
+                    key={s}
+                    className="w-3.5 h-3.5"
+                    style={{ opacity: s <= challengeStatus.stars ? 1 : 0.2 }}
+                    fill={s <= challengeStatus.stars ? '#FECA57' : 'none'}
+                    color="#FECA57"
+                  />
                 ))}
                 <span className="text-xs ml-1" style={{ color: 'var(--color-success)' }}>완료!</span>
               </div>
@@ -249,7 +257,7 @@ export default function Home() {
           {gameCards.map((card, i) => (
             <Link key={card.href} href={card.href} className="no-underline">
               <Card hoverable className="p-4 h-full text-center slide-up" style={{ animationDelay: `${(i + 6) * 0.05}s`, opacity: 0 }}>
-                <div className="text-3xl mb-2">{card.icon}</div>
+                <div className="flex justify-center mb-2"><card.icon className="w-7 h-7" style={{ color: card.color }} /></div>
                 <h3 className="text-base font-bold mb-0.5" style={{ fontFamily: "'Outfit'" }}>{card.title}</h3>
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{card.desc}</p>
               </Card>
@@ -262,13 +270,13 @@ export default function Home() {
       <section className="text-center py-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: '연습 모드', value: '5가지', icon: '⌨️' },
-            { label: '게임', value: '6종', icon: '🎮' },
-            { label: '언어', value: '한/영', icon: '🌏' },
-            { label: '연습 콘텐츠', value: '2000+', icon: '📚' },
+            { label: '연습 모드', value: '5가지', icon: Keyboard },
+            { label: '게임', value: '6종', icon: Gamepad2 },
+            { label: '언어', value: '한/영', icon: Globe },
+            { label: '연습 콘텐츠', value: '2000+', icon: BookOpen },
           ].map((stat) => (
             <Card key={stat.label} className="p-3">
-              <div className="text-lg mb-1">{stat.icon}</div>
+              <div className="flex justify-center mb-1"><stat.icon className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></div>
               <div className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--color-secondary)' }}>
                 {stat.value}
               </div>

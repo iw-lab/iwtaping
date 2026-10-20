@@ -12,23 +12,25 @@ export interface MascotAccessory {
   unlockLevel?: number;
 }
 
+/** icon 은 화면에 아직 안 꽂혔지만(현재 참조하는 UI 없음), 나중에 꽂을 때를 위해
+ *  이모지 글자가 아니라 lucide-react 아이콘 이름(kebab-case)으로 들고 있는다. */
 const ALL_ACCESSORIES: MascotAccessory[] = [
-  { id: 'ribbon-red', name: '빨간 리본', icon: '🎀', type: 'ribbon', price: 0, unlockLevel: 2 },
-  { id: 'hat-wizard', name: '마법사 모자', icon: '🧙', type: 'hat', price: 0, unlockLevel: 5 },
-  { id: 'glasses-star', name: '별 안경', icon: '⭐', type: 'glasses', price: 0, unlockLevel: 10 },
-  { id: 'cape-purple', name: '보라색 망토', icon: '🦸', type: 'cape', price: 0, unlockLevel: 15 },
-  { id: 'crown-bronze', name: '브론즈 왕관', icon: '👑', type: 'crown', price: 0, unlockLevel: 20 },
-  { id: 'crown-silver', name: '실버 왕관', icon: '👑', type: 'crown', price: 0, unlockLevel: 30 },
-  { id: 'wings-angel', name: '천사 날개', icon: '😇', type: 'wings', price: 0, unlockLevel: 40 },
-  { id: 'crown-gold', name: '골드 왕관', icon: '👑', type: 'crown', price: 0, unlockLevel: 50 },
+  { id: 'ribbon-red', name: '빨간 리본', icon: 'gift', type: 'ribbon', price: 0, unlockLevel: 2 },
+  { id: 'hat-wizard', name: '마법사 모자', icon: 'wand-2', type: 'hat', price: 0, unlockLevel: 5 },
+  { id: 'glasses-star', name: '별 안경', icon: 'star', type: 'glasses', price: 0, unlockLevel: 10 },
+  { id: 'cape-purple', name: '보라색 망토', icon: 'shirt', type: 'cape', price: 0, unlockLevel: 15 },
+  { id: 'crown-bronze', name: '브론즈 왕관', icon: 'crown', type: 'crown', price: 0, unlockLevel: 20 },
+  { id: 'crown-silver', name: '실버 왕관', icon: 'crown', type: 'crown', price: 0, unlockLevel: 30 },
+  { id: 'wings-angel', name: '천사 날개', icon: 'feather', type: 'wings', price: 0, unlockLevel: 40 },
+  { id: 'crown-gold', name: '골드 왕관', icon: 'crown', type: 'crown', price: 0, unlockLevel: 50 },
   // Purchasable
-  { id: 'hat-cat-ears', name: '고양이 귀', icon: '🐱', type: 'hat', price: 50 },
-  { id: 'glasses-cool', name: '선글라스', icon: '😎', type: 'glasses', price: 30 },
-  { id: 'ribbon-blue', name: '파란 리본', icon: '💙', type: 'ribbon', price: 25 },
-  { id: 'hat-party', name: '파티 모자', icon: '🎉', type: 'hat', price: 40 },
-  { id: 'cape-rainbow', name: '무지개 망토', icon: '🌈', type: 'cape', price: 80 },
-  { id: 'hat-chef', name: '셰프 모자', icon: '👨‍🍳', type: 'hat', price: 60 },
-  { id: 'glasses-heart', name: '하트 안경', icon: '💕', type: 'glasses', price: 35 },
+  { id: 'hat-cat-ears', name: '고양이 귀', icon: 'cat', type: 'hat', price: 50 },
+  { id: 'glasses-cool', name: '선글라스', icon: 'glasses', type: 'glasses', price: 30 },
+  { id: 'ribbon-blue', name: '파란 리본', icon: 'heart', type: 'ribbon', price: 25 },
+  { id: 'hat-party', name: '파티 모자', icon: 'party-popper', type: 'hat', price: 40 },
+  { id: 'cape-rainbow', name: '무지개 망토', icon: 'rainbow', type: 'cape', price: 80 },
+  { id: 'hat-chef', name: '셰프 모자', icon: 'chef-hat', type: 'hat', price: 60 },
+  { id: 'glasses-heart', name: '하트 안경', icon: 'heart', type: 'glasses', price: 35 },
 ];
 
 interface MascotState {
@@ -63,12 +65,12 @@ const defaultMascot: MascotState = {
 };
 
 const ENCOURAGEMENTS = [
-  '오늘도 열심히 연습하자! 💪',
-  '화이팅! 넌 할 수 있어! ⭐',
+  '오늘도 열심히 연습하자!',
+  '화이팅! 넌 할 수 있어!',
   '와, 점점 빨라지고 있어!',
-  '타이핑 천재가 되는 중! 🚀',
+  '타이핑 천재가 되는 중!',
   '오늘의 챌린지에 도전해볼까?',
-  '연습하면 실력이 쑥쑥! 📈',
+  '연습하면 실력이 쑥쑥!',
 ];
 
 let bubbleTimer: ReturnType<typeof setTimeout> | null = null;

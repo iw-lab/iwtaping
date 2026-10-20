@@ -7,6 +7,7 @@ import { useShopStore } from '@/stores/useShopStore';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { SOUND_PACKS, CARET_SKINS } from '@/lib/shop/catalog';
 import { soundManager, KeyTheme } from '@/lib/sound/sound-manager';
+import { Coins, Music, Paintbrush, Play } from 'lucide-react';
 
 export default function ShopPage() {
   const { shop, buy, equipSound, equipSkin, availableCoins, load } = useShopStore();
@@ -49,7 +50,7 @@ export default function ShopPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold gradient-text" style={{ fontFamily: "'Outfit', sans-serif" }}>상점</h1>
         <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'var(--bg-card)', border: '1px solid var(--key-border)' }}>
-          <span className="text-lg">🪙</span>
+          <Coins className="w-4 h-4" style={{ color: 'var(--color-accent-warm)' }} />
           <span className="font-bold" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--color-accent-warm)' }}>{coins.toLocaleString()}</span>
         </div>
       </div>
@@ -60,7 +61,7 @@ export default function ShopPage() {
       </p>
 
       {/* 타이핑 음 팩 */}
-      <h2 className="text-lg font-bold mb-3">🎵 타이핑 음</h2>
+      <h2 className="text-lg font-bold mb-3 flex items-center gap-1.5"><Music className="w-4 h-4" /> 타이핑 음</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
         {SOUND_PACKS.map((item) => {
           const owned = shop.owned.includes(item.id);
@@ -75,9 +76,9 @@ export default function ShopPage() {
                 <div className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{item.desc}</div>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <button onClick={() => previewSound(item.id)} className="text-xs px-2 py-1.5 rounded-lg" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>▶ 듣기</button>
+                <button onClick={() => previewSound(item.id)} className="text-xs px-2 py-1.5 rounded-lg flex items-center gap-1" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}><Play className="w-3 h-3" /> 듣기</button>
                 {!owned ? (
-                  <Button size="sm" onClick={() => handleBuy(item.id, item.label)}>🪙 {item.price}</Button>
+                  <Button size="sm" onClick={() => handleBuy(item.id, item.label)}><Coins className="w-3.5 h-3.5 inline mr-1" />{item.price}</Button>
                 ) : equipped ? (
                   <span className="text-xs px-2" style={{ color: 'var(--color-success)' }}>✓</span>
                 ) : (
@@ -90,7 +91,7 @@ export default function ShopPage() {
       </div>
 
       {/* 커서 스킨 */}
-      <h2 className="text-lg font-bold mb-3">🖌️ 커서 스킨</h2>
+      <h2 className="text-lg font-bold mb-3 flex items-center gap-1.5"><Paintbrush className="w-4 h-4" /> 커서 스킨</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {CARET_SKINS.map((item) => {
           const owned = shop.owned.includes(item.id);
@@ -112,7 +113,7 @@ export default function ShopPage() {
               </div>
               <div className="shrink-0">
                 {!owned ? (
-                  <Button size="sm" onClick={() => handleBuy(item.id, item.label)}>🪙 {item.price}</Button>
+                  <Button size="sm" onClick={() => handleBuy(item.id, item.label)}><Coins className="w-3.5 h-3.5 inline mr-1" />{item.price}</Button>
                 ) : equipped ? (
                   <span className="text-xs px-2" style={{ color: 'var(--color-success)' }}>✓</span>
                 ) : (

@@ -7,12 +7,14 @@
  *  - clear : 화면의 모든 적 제거(+보너스)
  *  - heal  : 게임별 생명 자원 회복(방어막/HP/성 체력) — 회복량은 각 게임에서 결정
  */
+import { drawVectorIcon, ICON_SNOWFLAKE, ICON_ZAP, ICON_HEART } from './canvas-icons';
+
 export type Ability = 'freeze' | 'clear' | 'heal';
 
-export const ABILITY_META: Record<Ability, { icon: string; label: string; color: string }> = {
-  freeze: { icon: '❄️', label: '일시정지', color: '#48DBFB' },
-  clear: { icon: '💥', label: '전체 제거', color: '#FD79A8' },
-  heal: { icon: '💚', label: '회복', color: '#00E5A0' },
+export const ABILITY_META: Record<Ability, { iconPaths: readonly string[]; label: string; color: string }> = {
+  freeze: { iconPaths: ICON_SNOWFLAKE, label: '일시정지', color: '#48DBFB' },
+  clear: { iconPaths: ICON_ZAP, label: '전체 제거', color: '#FD79A8' },
+  heal: { iconPaths: ICON_HEART, label: '회복', color: '#00E5A0' },
 };
 
 export const ABILITIES: Ability[] = ['freeze', 'clear', 'heal'];
@@ -56,6 +58,9 @@ export function drawSpecialMarker(
   ctx.font = "bold 10px 'Noto Sans KR', sans-serif";
   ctx.fillStyle = meta.color;
   ctx.textAlign = 'center';
-  ctx.fillText(`${meta.icon} ${meta.label}`, x, labelY ?? y - 30);
+  const ly = labelY ?? y - 30;
+  const labelW = ctx.measureText(meta.label).width;
+  ctx.fillText(meta.label, x, ly);
+  drawVectorIcon(ctx, meta.iconPaths, x - labelW / 2 - 9, ly - 4, 12, meta.color);
   ctx.restore();
 }

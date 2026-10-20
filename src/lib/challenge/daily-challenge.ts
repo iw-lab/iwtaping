@@ -28,17 +28,18 @@ function dateHash(dateStr: string): number {
   return hash;
 }
 
+/** icon 은 이모지 글자가 아니라 lucide-react 아이콘 이름(kebab-case) — 그리는 쪽은 DataIcon 참고. */
 const CHALLENGE_TEMPLATES: Omit<DailyChallenge, 'id' | 'date' | 'difficulty' | 'xpReward' | 'coinReward'>[] = [
-  { type: 'speed', title: '번개 손가락', description: '타수 {target}타/분 이상으로 타이핑하세요!', icon: '⚡', target: 200, unit: '타/분', timeLimit: 60 },
-  { type: 'speed', title: '폭풍 타이핑', description: '60초 안에 {target}타/분을 달성하세요!', icon: '🌪️', target: 250, unit: '타/분', timeLimit: 60 },
-  { type: 'accuracy', title: '완벽주의자', description: '정확도 {target}% 이상으로 연습을 완료하세요!', icon: '🎯', target: 98, unit: '%', timeLimit: 0 },
-  { type: 'accuracy', title: '오타 제로', description: '정확도 {target}% 이상! 실수 없이 도전!', icon: '💎', target: 99, unit: '%', timeLimit: 0 },
-  { type: 'combo', title: '콤보 마스터', description: '{target}콤보를 달성하세요!', icon: '🔥', target: 30, unit: '콤보', timeLimit: 0 },
-  { type: 'combo', title: '무한 콤보', description: '{target}콤보 이상을 기록하세요!', icon: '💥', target: 50, unit: '콤보', timeLimit: 0 },
-  { type: 'endurance', title: '마라톤 타자', description: '{target}분 동안 연습하세요!', icon: '🏃', target: 5, unit: '분', timeLimit: 0 },
-  { type: 'endurance', title: '인내의 달인', description: '{target}개의 단어를 연습하세요!', icon: '🏋️', target: 100, unit: '단어', timeLimit: 0 },
-  { type: 'speed', title: '로켓 타이핑', description: '30초 안에 {target}타/분 이상!', icon: '🚀', target: 300, unit: '타/분', timeLimit: 30 },
-  { type: 'accuracy', title: '레이저 정확도', description: '긴 글에서 {target}% 정확도를 유지하세요!', icon: '🔬', target: 97, unit: '%', timeLimit: 0 },
+  { type: 'speed', title: '번개 손가락', description: '타수 {target}타/분 이상으로 타이핑하세요!', icon: 'zap', target: 200, unit: '타/분', timeLimit: 60 },
+  { type: 'speed', title: '폭풍 타이핑', description: '60초 안에 {target}타/분을 달성하세요!', icon: 'wind', target: 250, unit: '타/분', timeLimit: 60 },
+  { type: 'accuracy', title: '완벽주의자', description: '정확도 {target}% 이상으로 연습을 완료하세요!', icon: 'target', target: 98, unit: '%', timeLimit: 0 },
+  { type: 'accuracy', title: '오타 제로', description: '정확도 {target}% 이상! 실수 없이 도전!', icon: 'gem', target: 99, unit: '%', timeLimit: 0 },
+  { type: 'combo', title: '콤보 마스터', description: '{target}콤보를 달성하세요!', icon: 'flame', target: 30, unit: '콤보', timeLimit: 0 },
+  { type: 'combo', title: '무한 콤보', description: '{target}콤보 이상을 기록하세요!', icon: 'zap', target: 50, unit: '콤보', timeLimit: 0 },
+  { type: 'endurance', title: '마라톤 타자', description: '{target}분 동안 연습하세요!', icon: 'footprints', target: 5, unit: '분', timeLimit: 0 },
+  { type: 'endurance', title: '인내의 달인', description: '{target}개의 단어를 연습하세요!', icon: 'dumbbell', target: 100, unit: '단어', timeLimit: 0 },
+  { type: 'speed', title: '로켓 타이핑', description: '30초 안에 {target}타/분 이상!', icon: 'rocket', target: 300, unit: '타/분', timeLimit: 30 },
+  { type: 'accuracy', title: '레이저 정확도', description: '긴 글에서 {target}% 정확도를 유지하세요!', icon: 'microscope', target: 97, unit: '%', timeLimit: 0 },
 ];
 
 const DIFFICULTY_BY_DAY: Record<number, 1 | 2 | 3> = {

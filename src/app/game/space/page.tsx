@@ -20,6 +20,9 @@ import {
 } from '@/lib/game/renderer';
 import { Ability, ABILITY_META, FREEZE_MS, rollSpecial, pickAbility, drawSpecialMarker } from '@/lib/game/special-words';
 import { createGameJuice } from '@/lib/game/juice-table';
+import { drawVectorIcon, ICON_SNOWFLAKE } from '@/lib/game/canvas-icons';
+import { AbilityIcon } from '@/components/common/AbilityIcon';
+import { Sparkles, Snowflake, Zap, Heart } from 'lucide-react';
 
 const SPACE_SPRITES = {
   'space-bg': '/game/space/bg.webp',
@@ -74,7 +77,7 @@ export default function SpaceGamePage() {
   const [countdown, setCountdown] = useState(3);
   const [wordPool, setWordPool] = useState<string[]>([]);
   const [destroyCount, setDestroyCount] = useState(0);
-  const [effectMsg, setEffectMsg] = useState('');
+  const [effectMsg, setEffectMsg] = useState<{ ability: Ability; msg: string } | null>(null);
   const freezeUntilRef = useRef(0);
 
   const enemiesRef = useRef<Enemy[]>([]);
@@ -193,7 +196,7 @@ export default function SpaceGamePage() {
     targetRef.current = null;
     scoreRef.current = 0; levelRef.current = 1; comboRef.current = 0;
     shieldRef.current = 10; killCountRef.current = 0; attemptsRef.current = 0;
-    freezeUntilRef.current = 0; setEffectMsg('');
+    freezeUntilRef.current = 0; setEffectMsg(null);
     particlesRef.current = new ParticleSystem();
     shakeRef.current = new ScreenShake();
     wordGenerator.reset();
@@ -477,7 +480,8 @@ export default function SpaceGamePage() {
         ctx.font = "bold 13px 'Noto Sans KR', sans-serif";
         ctx.fillStyle = 'rgba(180,240,255,0.9)';
         ctx.textAlign = 'center';
-        ctx.fillText('❄️ 일시정지', W / 2, 52);
+        ctx.fillText('일시정지', W / 2, 52);
+        drawVectorIcon(ctx, ICON_SNOWFLAKE, W / 2 - ctx.measureText('일시정지').width / 2 - 11, 47, 16, 'rgba(180,240,255,0.9)');
         ctx.restore();
       }
 
@@ -511,9 +515,9 @@ export default function SpaceGamePage() {
     return () => cancelAnimationFrame(animRef.current);
   }, [status, wordPool, isKorean]);
 
-  const flashEffect = useCallback((msg: string) => {
-    setEffectMsg(msg);
-    setTimeout(() => setEffectMsg(''), 2200);
+  const flashEffect = useCallback((ability: Ability, msg: string) => {
+    setEffectMsg({ ability, msg });
+    setTimeout(() => setEffectMsg(null), 2200);
   }, []);
 
   /** 특수 적기를 맞혔을 때 능력 발동. */
@@ -535,8 +539,8 @@ export default function SpaceGamePage() {
       shieldRef.current = Math.min(10, shieldRef.current + 2);
       setShield(shieldRef.current);
     }
-    juiceRef.current?.fire('special', { title: `${meta.icon} ${meta.label}!`, color: meta.color, vib: [25, 30, 25] });
-    flashEffect(`${meta.icon} ${meta.label} 발동!`);
+    juiceRef.current?.fire('special', { title: `${meta.label}!`, color: meta.color, vib: [25, 30, 25] });
+    flashEffect(ability, `${meta.label} 발동!`);
   }, [flashEffect]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -658,7 +662,19 @@ export default function SpaceGamePage() {
               <li>{isKorean ? '• 콤보로 보너스 점수 획득' : '• Chain combos for bonus points'}</li>
               <li>{isKorean ? '• 보스 적기 등장 시 긴 단어 입력 필요' : '• Boss enemies require longer words'}</li>
               <li>{isKorean ? '• 레벨 업 시 방어막 1 회복' : '• Shield +1 on level up'}</li>
-              <li style={{ color: '#FECA57' }}>{isKorean ? '• ✨ 금빛 특수 적기 격파 시 능력 발동 (❄️정지·💥전멸·💚방어막) + 점수 2배' : '• ✨ Golden ships trigger abilities (freeze/clear/heal) + 2x points'}</li>
+              <li style={{ color: '#FECA57' }} className="flex items-center gap-1 flex-wrap">
+                •<Sparkles className="w-3.5 h-3.5 inline" aria-hidden />
+                {isKorean ? (
+                  <>
+                    금빛 특수 적기 격파 시 능력 발동 (
+                    <Snowflake className="w-3.5 h-3.5 inline" aria-hidden />정지·
+                    <Zap className="w-3.5 h-3.5 inline" aria-hidden />전멸·
+                    <Heart className="w-3.5 h-3.5 inline" aria-hidden />방어막) + 점수 2배
+                  </>
+                ) : (
+                  'Golden ships trigger abilities (freeze/clear/heal) + 2x points'
+                )}
+              </li>
             </ul>
           </Card>
         </div>
@@ -712,9 +728,10 @@ export default function SpaceGamePage() {
       <div className="relative rounded-xl overflow-hidden border border-[var(--key-border)]" style={{ height: '500px' }}>
         <canvas ref={canvasRef} className="w-full h-full" style={{ display: 'block' }} />
         {effectMsg && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-bold pointer-events-none"
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-sm font-bold pointer-events-none flex items-center gap-1.5"
             style={{ background: 'rgba(254,202,87,0.92)', color: '#3A2A00', boxShadow: '0 4px 16px rgba(254,202,87,0.4)' }}>
-            {effectMsg}
+            <AbilityIcon ability={effectMsg.ability} className="w-4 h-4" />
+            {effectMsg.msg}
           </div>
         )}
       </div>

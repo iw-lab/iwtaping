@@ -10,6 +10,7 @@ import { submitScore } from '@/lib/api/client';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { generateKoreanSentence, generateEnglishSentence } from '@/lib/content/word-generator';
 import { fetchRaceGhosts, fetchLeaderboard } from '@/lib/api/client';
+import { Ghost, Bot, Car } from 'lucide-react';
 import { useGameBgm } from '@/hooks/useGameBgm';
 import { useGameResult } from '@/hooks/useGameResult';
 import { soundManager } from '@/lib/sound/sound-manager';
@@ -308,8 +309,12 @@ export default function RaceGamePage() {
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
           {isKorean ? '타이핑 레이스' : 'Typing Race'}
         </h1>
-        <p className="mb-2" style={{ color: 'var(--text-secondary)' }}>
-          {isKorean ? '실제 유저의 기록(👻)과 타이핑 속도 대결!' : 'Race real players’ recorded runs (👻)!'}
+        <p className="mb-2 flex items-center justify-center gap-1 flex-wrap" style={{ color: 'var(--text-secondary)' }}>
+          {isKorean ? (
+            <>실제 유저의 기록(<Ghost className="w-4 h-4 inline" />)과 타이핑 속도 대결!</>
+          ) : (
+            <>Race real players&rsquo; recorded runs (<Ghost className="w-4 h-4 inline" />)!</>
+          )}
         </p>
         <p className="mb-6 text-xs" style={{ color: 'var(--text-muted)' }}>
           {isKorean ? '전국 순위 기록을 고스트로 불러옵니다 · 기록이 없으면 AI가 대신 뜁니다' : 'Ghosts are loaded from the national leaderboard · AI fills in when none are available'}
@@ -343,7 +348,11 @@ export default function RaceGamePage() {
         {cars.map((car, i) => (
           <div key={i} className="mb-3">
             <div className="flex items-center gap-2 text-sm mb-1">
-              {car.isGhost && <span className="text-xs">{car.isReal ? '👻' : '🤖'}</span>}
+              {car.isGhost && (
+                <span className="text-xs">
+                  {car.isReal ? <Ghost className="w-3.5 h-3.5 inline" /> : <Bot className="w-3.5 h-3.5 inline" />}
+                </span>
+              )}
               <span style={{ color: car.color, fontWeight: 'bold', fontFamily: "'JetBrains Mono'" }}>{car.name}</span>
               {car.isReal && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,209,161,0.15)', color: '#1DD1A1', fontWeight: 'bold' }}>
@@ -374,7 +383,7 @@ export default function RaceGamePage() {
                       className="race-car-drive"
                       style={{ filter: 'drop-shadow(0 0 4px rgba(108,92,231,0.9))', objectFit: 'contain' }}
                     />
-                  ) : (car.isReal ? '👻' : '🚗')}
+                  ) : (car.isReal ? <Ghost className="w-4 h-4 inline" /> : <Car className="w-4 h-4 inline" />)}
                 </span>
               </div>
             </div>

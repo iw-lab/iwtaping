@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { useQuestStore } from '@/stores/useQuestStore';
 import { isClaimed, isComplete, questRatio } from '@/lib/progress/quests';
 import { msUntilWeeklyReset } from '@/lib/progress/league';
+import { DataIcon } from '@/components/common/DataIcon';
 
 interface DailyQuestsProps {
   className?: string;
@@ -79,9 +80,7 @@ export function DailyQuests({ className = '', compact = false }: DailyQuestsProp
           const claimed = isClaimed(quest, state);
           return (
             <div key={quest.id} className="flex items-center gap-3">
-              <span className="text-lg shrink-0" aria-hidden>
-                {quest.icon}
-              </span>
+              <DataIcon name={quest.icon} className="w-5 h-5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-medium truncate">{quest.title}</span>

@@ -12,6 +12,7 @@ import { MascotMood } from '@/stores/useMascotStore';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { useCelebrationStore } from '../common/CelebrationOverlay';
 import { formatTime } from '@/lib/utils/helpers';
+import { Coins } from 'lucide-react';
 
 interface ResultPanelProps {
   result: TypingResult;
@@ -47,11 +48,11 @@ function getMascotMood(grade: string): MascotMood {
 }
 
 function getMascotMessage(grade: string): string {
-  if (grade === 'S') return '와! 완벽해! 넌 타이핑 천재야! 🌟';
-  if (grade === 'A') return '대단해! 정말 잘했어! 👏';
-  if (grade === 'B') return '좋아! 점점 나아지고 있어! 💪';
-  if (grade === 'C') return '좋은 시도야! 계속 연습하자! 😊';
-  return '괜찮아! 연습하면 꼭 잘할 수 있어! 🤗';
+  if (grade === 'S') return '와! 완벽해! 넌 타이핑 천재야!';
+  if (grade === 'A') return '대단해! 정말 잘했어!';
+  if (grade === 'B') return '좋아! 점점 나아지고 있어!';
+  if (grade === 'C') return '좋은 시도야! 계속 연습하자!';
+  return '괜찮아! 연습하면 꼭 잘할 수 있어!';
 }
 
 // Animated counter
@@ -236,7 +237,7 @@ export function ResultPanel({ result, maxCombo, onRestart, mode = 'speed', ranke
               <div className="text-2xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--color-accent-warm)' }}>
                 +<AnimatedNumber value={earnedCoins} delay={400} />
               </div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>코인 🪙</div>
+              <div className="text-xs flex items-center justify-center gap-1" style={{ color: 'var(--text-muted)' }}>코인 <Coins className="w-3 h-3 inline" /></div>
             </div>
           </div>
         </Card>

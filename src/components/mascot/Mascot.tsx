@@ -1,6 +1,7 @@
 'use client';
 
 import { useMascotStore, MascotMood } from '@/stores/useMascotStore';
+import { Moon, Sparkles, PartyPopper, Droplet, MessageCircle, type LucideIcon } from 'lucide-react';
 
 interface MascotProps {
   mood?: MascotMood;
@@ -65,13 +66,15 @@ export function Mascot({ mood: moodOverride, size = 120, className = '', showBub
               position: 'absolute',
               top: -2,
               right: -4,
-              fontSize: Math.max(14, size * 0.2),
+              width: Math.max(14, size * 0.2),
+              height: Math.max(14, size * 0.2),
               lineHeight: 1,
               pointerEvents: 'none',
               filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+              color: decoration.color,
             }}
           >
-            {decoration}
+            <decoration.Icon width="100%" height="100%" />
           </span>
         )}
       </div>
@@ -79,14 +82,14 @@ export function Mascot({ mood: moodOverride, size = 120, className = '', showBub
   );
 }
 
-/** Small emoji cue layered over the cat so mood still reads without unique art per mood. */
-function getMoodDecoration(mood: MascotMood): string | null {
+/** Small icon cue layered over the cat so mood still reads without unique art per mood. */
+function getMoodDecoration(mood: MascotMood): { Icon: LucideIcon; color: string } | null {
   switch (mood) {
-    case 'sleeping': return '💤';
-    case 'excited': return '✨';
-    case 'cheering': return '🎉';
-    case 'sad': return '💧';
-    case 'thinking': return '💭';
+    case 'sleeping': return { Icon: Moon, color: '#A0AEC0' };
+    case 'excited': return { Icon: Sparkles, color: '#FECA57' };
+    case 'cheering': return { Icon: PartyPopper, color: '#FF6B9D' };
+    case 'sad': return { Icon: Droplet, color: '#48DBFB' };
+    case 'thinking': return { Icon: MessageCircle, color: '#A0AEC0' };
     default: return null;
   }
 }

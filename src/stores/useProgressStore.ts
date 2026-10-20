@@ -51,19 +51,19 @@ export function xpToNextLevel(level: number, currentXp: number): { needed: numbe
   return { needed, progress: Math.min(currentXp / needed, 1) };
 }
 
-// Level rewards
+/** icon 은 이모지 글자가 아니라 lucide-react 아이콘 이름(kebab-case) — 그리는 쪽은 DataIcon 참고. */
 const LEVEL_REWARDS: Record<number, Reward[]> = {
-  2: [{ type: 'accessory', id: 'ribbon-red', name: '빨간 리본', icon: '🎀' }],
-  3: [{ type: 'coins', id: 'coins-50', name: '50 코인', icon: '🪙' }],
-  5: [{ type: 'accessory', id: 'hat-wizard', name: '마법사 모자', icon: '🧙' }],
-  7: [{ type: 'coins', id: 'coins-100', name: '100 코인', icon: '💰' }],
-  10: [{ type: 'accessory', id: 'glasses-star', name: '별 안경', icon: '⭐' }, { type: 'title', id: 'title-rookie', name: '타이핑 루키', icon: '🏅' }],
-  15: [{ type: 'accessory', id: 'cape-purple', name: '보라색 망토', icon: '🦸' }],
-  20: [{ type: 'accessory', id: 'crown-bronze', name: '브론즈 왕관', icon: '👑' }, { type: 'title', id: 'title-expert', name: '타이핑 전문가', icon: '🏆' }],
-  25: [{ type: 'coins', id: 'coins-300', name: '300 코인', icon: '💎' }],
-  30: [{ type: 'accessory', id: 'crown-silver', name: '실버 왕관', icon: '👑' }],
-  40: [{ type: 'accessory', id: 'wings-angel', name: '천사 날개', icon: '😇' }],
-  50: [{ type: 'accessory', id: 'crown-gold', name: '골드 왕관', icon: '👑' }, { type: 'title', id: 'title-master', name: '타이핑 마스터', icon: '🎖️' }],
+  2: [{ type: 'accessory', id: 'ribbon-red', name: '빨간 리본', icon: 'gift' }],
+  3: [{ type: 'coins', id: 'coins-50', name: '50 코인', icon: 'coins' }],
+  5: [{ type: 'accessory', id: 'hat-wizard', name: '마법사 모자', icon: 'wand-2' }],
+  7: [{ type: 'coins', id: 'coins-100', name: '100 코인', icon: 'banknote' }],
+  10: [{ type: 'accessory', id: 'glasses-star', name: '별 안경', icon: 'star' }, { type: 'title', id: 'title-rookie', name: '타이핑 루키', icon: 'medal' }],
+  15: [{ type: 'accessory', id: 'cape-purple', name: '보라색 망토', icon: 'shirt' }],
+  20: [{ type: 'accessory', id: 'crown-bronze', name: '브론즈 왕관', icon: 'crown' }, { type: 'title', id: 'title-expert', name: '타이핑 전문가', icon: 'trophy' }],
+  25: [{ type: 'coins', id: 'coins-300', name: '300 코인', icon: 'gem' }],
+  30: [{ type: 'accessory', id: 'crown-silver', name: '실버 왕관', icon: 'crown' }],
+  40: [{ type: 'accessory', id: 'wings-angel', name: '천사 날개', icon: 'feather' }],
+  50: [{ type: 'accessory', id: 'crown-gold', name: '골드 왕관', icon: 'crown' }, { type: 'title', id: 'title-master', name: '타이핑 마스터', icon: 'award' }],
 };
 
 const STORAGE_KEY = 'typingverse-progress';

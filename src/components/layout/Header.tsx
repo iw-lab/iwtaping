@@ -6,16 +6,19 @@ import { useState, useEffect } from 'react';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { XPBar } from '../common/XPBar';
 import { useProgressStore, xpToNextLevel } from '@/stores/useProgressStore';
+import { DataIcon } from '../common/DataIcon';
+import { Flame } from 'lucide-react';
 
+/** icon 은 이모지 글자가 아니라 lucide-react 아이콘 이름(kebab-case) — DataIcon 이 그린다. */
 const navItems = [
-  { href: '/practice', label: '연습', icon: '⌨️' },
-  { href: '/test', label: '테스트', icon: '⏱️' },
-  { href: '/game', label: '게임', icon: '🎮' },
-  { href: '/challenge', label: '챌린지', icon: '🏆' },
-  { href: '/ranking', label: '리그', icon: '🏅' },
-  { href: '/shop', label: '상점', icon: '🛍️' },
-  { href: '/stats', label: '통계', icon: '📊' },
-  { href: '/settings', label: '설정', icon: '⚙️' },
+  { href: '/practice', label: '연습', icon: 'keyboard' },
+  { href: '/test', label: '테스트', icon: 'timer' },
+  { href: '/game', label: '게임', icon: 'gamepad' },
+  { href: '/challenge', label: '챌린지', icon: 'trophy' },
+  { href: '/ranking', label: '리그', icon: 'medal' },
+  { href: '/shop', label: '상점', icon: 'shopping-bag' },
+  { href: '/stats', label: '통계', icon: 'bar-chart' },
+  { href: '/settings', label: '설정', icon: 'settings' },
 ];
 
 export function Header() {
@@ -59,7 +62,7 @@ export function Header() {
                 }`}
                 style={isActive ? { background: 'rgba(108,92,231,0.15)' } : {}}
               >
-                <span className="mr-1">{item.icon}</span>
+                <DataIcon name={item.icon} className="w-4 h-4 mr-1 inline" />
                 {item.label}
               </Link>
             );
@@ -92,7 +95,7 @@ export function Header() {
 
           {/* Coins */}
           <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg" title="코인" style={{ background: 'rgba(254,202,87,0.10)' }}>
-            <span className="text-sm">🪙</span>
+            <DataIcon name="coins" className="w-4 h-4" style={{ color: 'var(--color-accent-warm)' }} />
             <span className="text-sm font-bold" style={{ color: 'var(--color-accent-warm)', fontFamily: "'JetBrains Mono'" }}>
               {progress.coins}
             </span>
@@ -130,12 +133,12 @@ export function Header() {
             </div>
             {progress.streakDays > 0 && (
               <div className="flex items-center gap-1">
-                <span className="text-xs">🔥</span>
+                <Flame className="w-3.5 h-3.5" style={{ color: '#FECA57' }} />
                 <span className="text-xs font-bold" style={{ color: '#FECA57' }}>{progress.streakDays}일</span>
               </div>
             )}
             <div className="flex items-center gap-1">
-              <span className="text-xs">🪙</span>
+              <DataIcon name="coins" className="w-3.5 h-3.5" style={{ color: 'var(--color-accent-warm)' }} />
               <span className="text-xs font-bold" style={{ color: 'var(--color-accent-warm)' }}>{progress.coins}</span>
             </div>
           </div>
@@ -148,7 +151,7 @@ export function Header() {
               style={{ color: pathname?.startsWith(item.href) ? 'var(--color-primary)' : 'var(--text-secondary)' }}
               onClick={() => setMobileOpen(false)}
             >
-              <span className="mr-2">{item.icon}</span>
+              <DataIcon name={item.icon} className="w-4 h-4 mr-2 inline" />
               {item.label}
             </Link>
           ))}

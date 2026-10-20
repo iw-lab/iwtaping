@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAchievementToast } from '@/stores/useAchievementToast';
+import { DataIcon } from './DataIcon';
 
 const DISPLAY_MS = 3600;
 
@@ -46,9 +47,7 @@ export function AchievementToast() {
           boxShadow: 'var(--shadow-card)',
         }}
       >
-        <span className="text-2xl" aria-hidden>
-          {current.icon}
-        </span>
+        <DataIcon name={current.icon} className="w-6 h-6 shrink-0" />
         <div>
           <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-accent-warm)' }}>
             도전과제 달성

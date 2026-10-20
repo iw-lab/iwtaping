@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { soundManager } from '@/lib/sound/sound-manager';
 import { allowedStarts } from '@/lib/game/hangul';
+import { Link2 } from 'lucide-react';
 import { useGameBgm } from '@/hooks/useGameBgm';
 import { useGameResult, hitAccuracy } from '@/hooks/useGameResult';
 import { useSettingsStore } from '@/stores/useSettingsStore';
@@ -314,7 +315,7 @@ export default function PuzzleGamePage() {
   if (status === 'menu') {
     return (
       <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
-        <div className="text-6xl mb-4">🔗</div>
+        <div className="flex justify-center mb-4"><Link2 className="w-14 h-14" style={{ color: '#FD79A8' }} /></div>
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
           {isKorean ? '끝말잇기' : 'Word Chain'}
         </h1>

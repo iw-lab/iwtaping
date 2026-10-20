@@ -9,6 +9,14 @@ import { LeagueCard } from '@/components/league/LeagueCard';
 import { fetchLeaderboard, fetchLeague, fetchMyRank, LeaderboardEntry, LeagueState, MyRank } from '@/lib/api/client';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { useAccountStore } from '@/stores/useAccountStore';
+import { Medal } from 'lucide-react';
+
+const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32']; // 금·은·동
+
+function RankBadge({ rank }: { rank: number }) {
+  if (rank > 3) return <>{`#${rank}`}</>;
+  return <Medal className="w-4 h-4 inline" style={{ color: MEDAL_COLORS[rank - 1] }} />;
+}
 
 type RankMode = 'speed' | 'accuracy' | 'game';
 
@@ -213,7 +221,7 @@ export default function RankingPage() {
           <span className="font-bold">지난주 결과</span>{' '}
           {league.lastWeek.rank != null && `${league.lastWeek.rank}위 · `}
           {league.lastWeek.outcome === 'promoted'
-            ? '승급했어요! 🎉'
+            ? '승급했어요!'
             : league.lastWeek.outcome === 'demoted'
               ? '강등됐어요. 이번 주에 되찾아봐요.'
               : '자리를 지켰어요.'}
@@ -290,7 +298,7 @@ export default function RankingPage() {
                       fontFamily: "'JetBrains Mono'",
                     }}
                   >
-                    {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
+                    <RankBadge rank={entry.rank} />
                   </span>
                   <span className="flex-1 font-medium truncate">{entry.nickname}</span>
                   <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--color-primary)' }}>
@@ -354,7 +362,7 @@ export default function RankingPage() {
                           fontFamily: "'JetBrains Mono'",
                         }}
                       >
-                        {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
+                        <RankBadge rank={entry.rank} />
                       </span>
                     </td>
                     <td className="px-4 py-3 font-medium">{entry.label}</td>

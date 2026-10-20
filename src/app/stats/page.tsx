@@ -9,6 +9,8 @@ import { ContributionCalendar } from '@/components/stats/ContributionCalendar';
 import { Mascot } from '@/components/mascot/Mascot';
 import { formatTime, getToday } from '@/lib/utils/helpers';
 import { ACHIEVEMENTS_LIST } from '@/lib/utils/constants';
+import { DataIcon } from '@/components/common/DataIcon';
+import { BarChart3, Timer, Trophy, Target, TrendingUp, CheckCircle, Flame, Keyboard } from 'lucide-react';
 
 export default function StatsPage() {
   const { stats, loadStats } = useStatsStore();
@@ -43,15 +45,15 @@ export default function StatsPage() {
           <div className="flex items-center gap-4">
             {progress.streakDays > 0 && (
               <div className="text-center">
-                <div className="text-xl font-bold" style={{ color: '#FECA57', fontFamily: "'JetBrains Mono'" }}>
-                  🔥 {progress.streakDays}
+                <div className="text-xl font-bold flex items-center justify-center gap-1" style={{ color: '#FECA57', fontFamily: "'JetBrains Mono'" }}>
+                  <Flame className="w-4 h-4" /> {progress.streakDays}
                 </div>
                 <div className="text-xs" style={{ color: 'var(--text-muted)' }}>연속 출석</div>
               </div>
             )}
             <div className="text-center">
-              <div className="text-xl font-bold" style={{ color: 'var(--color-accent-warm)', fontFamily: "'JetBrains Mono'" }}>
-                🪙 {progress.coins}
+              <div className="text-xl font-bold flex items-center justify-center gap-1" style={{ color: 'var(--color-accent-warm)', fontFamily: "'JetBrains Mono'" }}>
+                <DataIcon name="coins" className="w-4 h-4" /> {progress.coins}
               </div>
               <div className="text-xs" style={{ color: 'var(--text-muted)' }}>보유 코인</div>
             </div>
@@ -86,18 +88,18 @@ export default function StatsPage() {
       <h2 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>전체 기록</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         {[
-          { label: '총 세션', value: stats.totalSessions, icon: '📊' },
-          { label: '총 연습 시간', value: formatTime(stats.totalPracticeTime), icon: '⏱️' },
-          { label: '최고 타수', value: `${Math.round(stats.bestKpm)} 타/분`, icon: '🏆' },
-          { label: '최고 정확도', value: `${stats.bestAccuracy.toFixed(1)}%`, icon: '🎯' },
-          { label: '평균 타수', value: `${Math.round(stats.avgKpm)} 타/분`, icon: '📈' },
-          { label: '평균 정확도', value: `${stats.avgAccuracy.toFixed(1)}%`, icon: '✅' },
-          { label: '연속 연습', value: `${progress.streakDays}일`, icon: '🔥' },
-          { label: '총 키 입력', value: stats.totalKeystrokes.toLocaleString(), icon: '⌨️' },
+          { label: '총 세션', value: stats.totalSessions, icon: BarChart3 },
+          { label: '총 연습 시간', value: formatTime(stats.totalPracticeTime), icon: Timer },
+          { label: '최고 타수', value: `${Math.round(stats.bestKpm)} 타/분`, icon: Trophy },
+          { label: '최고 정확도', value: `${stats.bestAccuracy.toFixed(1)}%`, icon: Target },
+          { label: '평균 타수', value: `${Math.round(stats.avgKpm)} 타/분`, icon: TrendingUp },
+          { label: '평균 정확도', value: `${stats.avgAccuracy.toFixed(1)}%`, icon: CheckCircle },
+          { label: '연속 연습', value: `${progress.streakDays}일`, icon: Flame },
+          { label: '총 키 입력', value: stats.totalKeystrokes.toLocaleString(), icon: Keyboard },
         ].map((item, i) => (
           <Card key={item.label} className="p-3 slide-up" style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
             <div className="flex items-center gap-1.5">
-              <span className="text-sm">{item.icon}</span>
+              <item.icon className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{item.label}</span>
             </div>
             <div className="text-lg font-bold mt-1" style={{ fontFamily: "'JetBrains Mono'" }}>{item.value}</div>
@@ -150,7 +152,9 @@ export default function StatsPage() {
                 animationDelay: `${i * 0.03}s`,
               }}
             >
-              <div className={`text-2xl mb-1 ${unlocked ? 'bounce-in' : ''}`}>{ach.icon}</div>
+              <div className={`flex justify-center mb-1 ${unlocked ? 'bounce-in' : ''}`}>
+                <DataIcon name={ach.icon} className="w-7 h-7" />
+              </div>
               <div className="text-xs font-bold">{ach.title}</div>
               <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{ach.description}</div>
               {unlocked && (

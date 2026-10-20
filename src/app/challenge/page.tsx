@@ -14,6 +14,8 @@ import { useCelebrationStore } from '@/components/common/CelebrationOverlay';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { wordGenerator } from '@/lib/content/word-generator';
 import { TypingResult } from '@/types/typing';
+import { Star } from 'lucide-react';
+import { DataIcon } from '@/components/common/DataIcon';
 
 export default function ChallengePage() {
   const { settings } = useSettingsStore();
@@ -69,16 +71,16 @@ export default function ChallengePage() {
       saveChallengeStatus(challenge.date, true, earnedStars);
       setChallengeStatus({ completed: true, stars: earnedStars });
       setMood('cheering');
-      showMessage('챌린지 완료! 대단해! 🎉', 4000);
+      showMessage('챌린지 완료! 대단해!', 4000);
       trigger({
         type: 'challenge_complete',
         title: '일일 챌린지 완료!',
         subtitle: `+${challenge.xpReward} XP, +${challenge.coinReward} 코인`,
-        icon: '🏆',
+        icon: 'trophy',
       });
     } else if (!completed) {
       setMood('sad');
-      showMessage('아깝다! 다시 도전해볼까? 💪', 3000);
+      showMessage('아깝다! 다시 도전해볼까?', 3000);
     }
 
     setStatus('complete');
@@ -91,8 +93,8 @@ export default function ChallengePage() {
     return (
       <div className="max-w-[800px] mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold" style={{ fontFamily: "'Outfit'" }}>
-            {challenge.icon} {challenge.title}
+          <h1 className="text-xl font-bold flex items-center gap-2" style={{ fontFamily: "'Outfit'" }}>
+            <DataIcon name={challenge.icon} className="w-5 h-5" /> {challenge.title}
           </h1>
           <span className="text-sm px-3 py-1 rounded-full" style={{ background: 'rgba(108,92,231,0.2)', color: 'var(--color-primary-light)' }}>
             목표: {challenge.target}{challenge.unit}
@@ -123,7 +125,9 @@ export default function ChallengePage() {
           <Mascot mood={challengeStatus.completed ? 'cheering' : 'happy'} size={80} />
         </div>
 
-        <div className="text-4xl mb-3">{challenge.icon}</div>
+        <div className="flex justify-center mb-3">
+          <DataIcon name={challenge.icon} className="w-10 h-10" style={{ color: 'var(--color-primary)' }} />
+        </div>
         <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Outfit'" }}>
           {challenge.title}
         </h2>
@@ -161,9 +165,15 @@ export default function ChallengePage() {
         {/* Stars */}
         {challengeStatus.completed && (
           <div className="mb-4">
-            <div className="text-2xl">
+            <div className="flex justify-center gap-1">
               {[1, 2, 3].map(s => (
-                <span key={s} style={{ opacity: s <= challengeStatus.stars ? 1 : 0.2 }}>⭐</span>
+                <Star
+                  key={s}
+                  className="w-6 h-6"
+                  style={{ opacity: s <= challengeStatus.stars ? 1 : 0.2 }}
+                  fill={s <= challengeStatus.stars ? '#FECA57' : 'none'}
+                  color="#FECA57"
+                />
               ))}
             </div>
             <p className="text-xs mt-1" style={{ color: 'var(--color-success)' }}>완료!</p>

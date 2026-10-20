@@ -5,6 +5,7 @@ import { useProgressStore, Reward } from '@/stores/useProgressStore';
 import { Button } from '../ui/Button';
 import { getConfetti } from '@/lib/effects/confetti';
 import { Mascot } from '../mascot/Mascot';
+import { DataIcon } from './DataIcon';
 
 export function LevelUpOverlay() {
   const { progress, clearLevelUp, clearRewards } = useProgressStore();
@@ -75,7 +76,7 @@ export function LevelUpOverlay() {
                   animationDelay: `${i * 0.1}s`,
                 }}
               >
-                <span className="text-2xl">{reward.icon}</span>
+                <DataIcon name={reward.icon} className="w-7 h-7 shrink-0" />
                 <div className="text-left">
                   <div className="text-sm font-bold">{reward.name}</div>
                   <div className="text-xs" style={{ color: 'var(--text-muted)' }}>

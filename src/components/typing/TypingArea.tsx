@@ -101,16 +101,16 @@ export const TypingArea = forwardRef<TypingAreaHandle, TypingAreaProps>(function
       // Mascot reaction
       if (r.accuracy >= 98 && r.kpm >= 300) {
         setMood('cheering');
-        showMessage('완벽해! 진짜 대단해! 🌟', 3000);
+        showMessage('완벽해! 진짜 대단해!', 3000);
       } else if (r.accuracy >= 95) {
         setMood('excited');
-        showMessage('잘했어! 훌륭한 정확도! 👏', 3000);
+        showMessage('잘했어! 훌륭한 정확도!', 3000);
       } else if (r.accuracy >= 85) {
         setMood('happy');
-        showMessage('좋아! 계속 이렇게! 💪', 3000);
+        showMessage('좋아! 계속 이렇게!', 3000);
       } else {
         setMood('thinking');
-        showMessage('조금 더 천천히 정확하게 해볼까? 🤔', 3000);
+        showMessage('조금 더 천천히 정확하게 해볼까?', 3000);
       }
 
       // Check personal best
@@ -119,7 +119,7 @@ export const TypingArea = forwardRef<TypingAreaHandle, TypingAreaProps>(function
           type: 'personal_best',
           title: '새로운 최고 기록!',
           subtitle: `${Math.round(r.kpm)} 타/분`,
-          icon: '🏆',
+          icon: 'trophy',
         });
       }
 
