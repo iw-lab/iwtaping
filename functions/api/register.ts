@@ -1,4 +1,4 @@
-import { Env, json, badRequest, getSecret, readJson, validateNickname } from '../lib/common';
+import { Env, json, badRequest, getSecret, readJson, validateNickname, ensureGenNick } from '../lib/common';
 import { hashDevice, signToken } from '../lib/auth';
 
 interface Body {
@@ -35,12 +35,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (existing) {
     if (existing.banned) return badRequest('account_banned', 403);
     await env.DB.prepare(`UPDATE users SET last_seen_at = ?1 WHERE id = ?2`).bind(now, existing.id).run();
+    const nk = await ensureGenNick(env, existing.id, existing.nickname);
     return json({
       ok: true,
       token: await signToken(secret, { uid: existing.id, iat: now }),
       user: {
         id: existing.id,
-        nickname: existing.nickname,
+        nickname: nk.nickname,
+        renamed: nk.renamed,
         avatar: existing.avatar,
         provisional: !!existing.provisional,
       },

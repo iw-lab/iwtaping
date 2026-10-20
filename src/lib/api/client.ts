@@ -131,6 +131,8 @@ export async function restoreSession(): Promise<ApiUser | null> {
   });
   if (!res?.ok) return null;
   persistAuth(res.token, res.user);
+  // 옛 자유 입력 이름이 생성 닉네임으로 바뀌었으면 화면이 한 번 알려 준다(AccountOnboarding)
+  if ((res.user as ApiUser & { renamed?: boolean }).renamed) { try { localStorage.setItem('typingverse-renamed', res.user.nickname); } catch { /* 없음 */ } }
   return res.user;
 }
 

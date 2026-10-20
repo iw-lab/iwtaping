@@ -43,3 +43,6 @@ game-assets-src/
 
 # wrangler pages dev 로컬 산출물
 .wrangler/
+
+# 학교 허브 비밀(키트)
+.secrets/

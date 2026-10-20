@@ -5,7 +5,8 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/ui/Button';
 import { Mascot } from '@/components/mascot/Mascot';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { looksLikeRealName, NICKNAME_RE } from '@/lib/moderation/nickname';
+import { isGenNick, genNickChoices } from '@/lib/moderation/gen-nick';
+import { RefreshCw } from 'lucide-react';
 
 const DISMISS_KEY = 'typingverse-onboard-seen';
 
@@ -28,11 +29,12 @@ export function AccountOnboarding() {
 
   const [open, setOpen] = useState(false);
   const [nickname, setNickname] = useState('');
+  // 이름은 만들어진 후보에서 고른다(자유 입력 0 — 실명·욕설이 순위표에 오르지 않게)
+  const [choices, setChoices] = useState<string[]>([]);
+  useEffect(() => { if (open && !choices.length) setChoices(genNickChoices(3)); }, [open, choices.length]);
   const [grade, setGrade] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // 실명 경고를 한 번 본 뒤에도 그대로 쓰겠다고 했는지
-  const [nameConfirmed, setNameConfirmed] = useState(false);
 
   // 계정이 없고 아직 안 닫았으면 자동으로 연다
   useEffect(() => {
@@ -49,15 +51,9 @@ export function AccountOnboarding() {
   };
 
   const submit = async () => {
-    const name = nickname.trim();
-    if (!NICKNAME_RE.test(name)) {
-      setError('닉네임은 한글·영문·숫자 2~12자로 입력해주세요.');
-      return;
-    }
-    // 실명은 막지 않고 한 번만 되묻는다 — 3글자 한글에는 멀쩡한 별명도 많다.
-    if (looksLikeRealName(name) && !nameConfirmed) {
-      setNameConfirmed(true);
-      setError('혹시 실명인가요? 순위표에 그대로 보여요. 별명을 쓰는 편이 안전해요. 그대로 쓰려면 한 번 더 눌러 주세요.');
+    const name = nickname;
+    if (!isGenNick(name)) {
+      setError('아래 이름 중 하나를 골라 주세요.');
       return;
     }
     setBusy(true);
@@ -69,11 +65,12 @@ export function AccountOnboarding() {
         setOpen(false);
       } else if (reason === 'nickname_banned') {
         // 금칙어 목록은 서버에만 있다(번들에 욕설 목록을 싣지 않으려고).
-        setError('쓸 수 없는 낱말이 들어 있어요. 다른 닉네임을 지어 주세요.');
+        setError('다른 이름을 골라 주세요.');
       } else if (reason === 'nickname_format') {
-        setError('닉네임은 한글·영문·숫자 2~12자로 입력해주세요.');
+        setError('아래 이름 중 하나를 골라 주세요.');
       } else {
-        setError('계정을 만들지 못했어요. 닉네임이 이미 있거나 네트워크 문제일 수 있어요.');
+        setChoices(genNickChoices(3)); setNickname('');
+        setError('이미 누가 쓰는 이름이거나 네트워크 문제예요. 새 이름 중에서 다시 골라 주세요.');
       }
     } catch {
       setError('계정을 만들지 못했어요. 잠시 후 다시 시도해주세요.');
@@ -82,6 +79,20 @@ export function AccountOnboarding() {
     }
   };
 
+  // 옛 이름이 생성 닉네임으로 바뀐 계정 — 한 번만 알려 준다
+  const [renamed, setRenamed] = useState<string | null>(null);
+  useEffect(() => { try { setRenamed(localStorage.getItem('typingverse-renamed')); } catch { /* 없음 */ } }, [status]);
+  if (renamed && !open) {
+    const close = () => { try { localStorage.removeItem('typingverse-renamed'); } catch { /* 없음 */ } setRenamed(null); };
+    return (
+      <Modal isOpen onClose={close} title="새 이름이 생겼어요">
+        <p className="text-center mb-4" style={{ color: 'var(--text-secondary)' }}>
+          순위표에 안전하게 보이도록 이름이 <strong>{renamed}</strong>(으)로 바뀌었어요.<br />점수·리그·코인은 그대로예요.
+        </p>
+        <Button size="md" className="w-full" onClick={close}>좋아요</Button>
+      </Modal>
+    );
+  }
   if (!open) return null;
 
   return (
@@ -95,18 +106,21 @@ export function AccountOnboarding() {
         </p>
       </div>
 
-      <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>닉네임</label>
-      <input
-        value={nickname}
-        onChange={(e) => { setNickname(e.target.value); setNameConfirmed(false); }}
-        onKeyDown={(e) => { if (e.key === 'Enter' && !busy) submit(); }}
-        maxLength={12}
-        autoFocus
-        placeholder="예: 타자왕"
-        className="w-full px-4 py-3 rounded-xl border text-base mb-3"
-        style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', borderColor: 'var(--key-border)' }}
-      />
-
+      <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>내 이름 고르기</label>
+      <div className="grid grid-cols-1 gap-2 mb-2" role="radiogroup" aria-label="이름 후보">
+        {choices.map((c) => (
+          <button key={c} type="button" role="radio" aria-checked={nickname === c} onClick={() => setNickname(c)}
+            className="w-full px-4 py-3 rounded-xl border text-base font-semibold"
+            style={{ background: nickname === c ? 'var(--color-primary)' : 'var(--bg-tertiary)', color: nickname === c ? '#fff' : 'var(--text-primary)', borderColor: nickname === c ? 'var(--color-primary)' : 'var(--key-border)' }}>
+            {c}
+          </button>
+        ))}
+      </div>
+      <button type="button" onClick={() => { setChoices(genNickChoices(3)); setNickname(''); }}
+        className="w-full mb-3 py-2 rounded-lg text-sm inline-flex items-center justify-center gap-1"
+        style={{ color: 'var(--text-secondary)' }}>
+        <RefreshCw className="w-4 h-4" /> 다른 이름 보기
+      </button>
       <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>학년 (선택)</label>
       <div className="flex gap-2 mb-3">
         {GRADES.map((g) => (

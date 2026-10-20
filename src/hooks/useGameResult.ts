@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '@/stores/useGameStore';
 import type { GameResult } from '@/types/game';
+import { schoolFinish, schoolLeave } from '@/lib/gb/school';
 
 /**
  * 게임 한 판이 끝났을 때 결과를 useGameStore에 딱 한 번만 기록한다.
@@ -39,7 +40,12 @@ export function useGameResult(
     if (!partial) return;
     recorded.current = true;
     useGameStore.getState().addResult({ ...partial, timestamp: Date.now() });
+    // 학교 순위 — 판 하나 = 영수증 하나 · 정확도 90% 이상이면 학교 +1(lib/gb/school.ts)
+    void schoolFinish(partial.accuracy ?? 0);
   }, [finished]);
+
+  // 판 도중에 페이지를 떠나면 영수증을 닫는다(90초 안 = 환불)
+  useEffect(() => () => schoolLeave(), []);
 }
 
 /** 시도 대비 성공 비율(%). 시도가 없으면 0 — NaN이 저장되는 것을 막는다. */

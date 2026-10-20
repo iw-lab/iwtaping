@@ -1,4 +1,4 @@
-import { Env, json, badRequest, requireUser } from '../lib/common';
+import { Env, json, badRequest, requireUser, ensureGenNick } from '../lib/common';
 import { readWallet } from '../lib/wallet';
 
 /** 내 프로필 + 지갑 + 최근 기록 요약 */
@@ -21,6 +21,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   if (!profile) return badRequest('account_missing', 404);
 
+  // 옛 자유 입력 이름 → 생성 닉네임으로 한 번 치환(lib/common ensureGenNick)
+  const nk = await ensureGenNick(env, profile.id, profile.nickname);
+  profile.nickname = nk.nickname;
+  const renamed = nk.renamed;
+
   const wallet = await readWallet(env, user.uid);
 
   const best = await env.DB.prepare(
@@ -35,6 +40,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     user: {
       id: profile.id,
       nickname: profile.nickname,
+      renamed,
       avatar: profile.avatar,
       gradeBand: profile.grade_band,
       provisional: !!profile.provisional,

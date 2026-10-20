@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { soundManager } from '@/lib/sound/sound-manager';
 import { useGameBgm } from '@/hooks/useGameBgm';
+import { schoolGate } from '@/lib/gb/school';
 import { useGameResult, hitAccuracy } from '@/hooks/useGameResult';
 import { pickRandom } from '@/lib/utils/helpers';
 import { useSettingsStore } from '@/stores/useSettingsStore';
@@ -662,7 +663,7 @@ export default function ZombieGamePage() {
           ❄️ 일시정지 · 💥 전체 소탕 · 💚 체력 회복 (점수 2배!)
         </p>
       )}
-      <Button size="lg" onClick={startGame}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
+      <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
     </div>
   );
 
@@ -690,7 +691,7 @@ export default function ZombieGamePage() {
           <div className="text-xl font-bold" style={{ fontFamily: "'JetBrains Mono'", color: '#FF6B6B' }}>{killCount}</div>
         </Card>
       </div>
-      <Button size="lg" onClick={startGame}>{isKorean ? '다시 시작' : 'Retry'}</Button>
+      <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 시작' : 'Retry'}</Button>
     </div>
   );
 

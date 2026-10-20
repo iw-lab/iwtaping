@@ -12,6 +12,7 @@ import { generateKoreanSentence, generateEnglishSentence } from '@/lib/content/w
 import { fetchRaceGhosts, fetchLeaderboard } from '@/lib/api/client';
 import { Ghost, Bot, Car } from 'lucide-react';
 import { useGameBgm } from '@/hooks/useGameBgm';
+import { schoolGate } from '@/lib/gb/school';
 import { useGameResult } from '@/hooks/useGameResult';
 import { soundManager } from '@/lib/sound/sound-manager';
 import { createGameJuice } from '@/lib/game/juice-table';
@@ -319,7 +320,7 @@ export default function RaceGamePage() {
         <p className="mb-6 text-xs" style={{ color: 'var(--text-muted)' }}>
           {isKorean ? '전국 순위 기록을 고스트로 불러옵니다 · 기록이 없으면 AI가 대신 뜁니다' : 'Ghosts are loaded from the national leaderboard · AI fills in when none are available'}
         </p>
-        <Button size="lg" onClick={startRace}>{isKorean ? '레이스 시작' : 'Start Race'}</Button>
+        <Button size="lg" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '레이스 시작' : 'Start Race'}</Button>
       </div>
     );
   }
@@ -425,7 +426,7 @@ export default function RaceGamePage() {
               </div>
             ))}
           </div>
-          <Button size="lg" className="mt-6" onClick={startRace}>{isKorean ? '다시 도전' : 'Race Again'}</Button>
+          <Button size="lg" className="mt-6" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '다시 도전' : 'Race Again'}</Button>
         </div>
       )}
     </div>

@@ -1,3 +1,5 @@
+import { publicNick, isGenNick, genNickFrom } from '../../src/lib/moderation/gen-nick';
+export { isGenNick, genNickFrom };
 import { verifyToken } from './auth';
 import { checkNickname } from './nickname';
 
@@ -109,6 +111,8 @@ export async function isRateLimited(
 
 // 금칙어 목록·정규화는 nickname.ts에 모여 있다(클라이언트 사본과 테스트로 동기화).
 export function validateNickname(nickname: unknown): { ok: true; value: string } | { ok: false; error: string } {
+  // 새 이름은 생성 닉네임 형식만 받는다(자유 입력 0 — 아동 개인정보). 형식이 맞아도 금칙어 검사는 그대로 한 번 더
+  if (!isGenNick(nickname)) return { ok: false, error: 'nickname_format' };
   return checkNickname(nickname);
 }
 
@@ -120,7 +124,22 @@ export function validateNickname(nickname: unknown): { ok: true; value: string }
  * 노출되지 않게 한다(계정 자체는 살아 있고 본인 화면에서는 원래대로 보인다).
  */
 export function maskNickname(nickname: string): string {
-  if (checkNickname(nickname).ok) return nickname;
-  // 첫 글자를 남기면 '좆*'·'씹**'처럼 핵심 글자가 그대로 보인다 — 통째로 가린다.
-  return '이름숨김';
+  // 생성 닉네임만 공개한다 — 옛 자유 입력 이름(실명·욕설 위험)은 그 문자열에서 정해진 생성 이름으로(src/lib/moderation/gen-nick.ts)
+  return publicNick(nickname);
+}
+
+/**
+ * 옛 자유 입력 이름 → 생성 닉네임으로 한 번 치환(점수·리그·지갑은 그대로). 이미 생성 형식이면 그대로.
+ * 돌려줌 = { nickname, renamed } — renamed 면 화면이 «새 이름» 을 한 번 알려 준다.
+ */
+export async function ensureGenNick(env: Env, id: string, nickname: string): Promise<{ nickname: string; renamed: boolean }> {
+  if (isGenNick(nickname)) return { nickname, renamed: false };
+  for (let salt = 0; salt < 8; salt++) {
+    const next = genNickFrom(id, salt);
+    try {
+      const r = await env.DB.prepare(`UPDATE users SET nickname = ?1 WHERE id = ?2`).bind(next, id).run();
+      if (r.meta?.changes) return { nickname: next, renamed: true };
+    } catch { /* 같은 이름이 있으면(UNIQUE) 다음 후보 */ }
+  }
+  return { nickname: publicNick(nickname), renamed: false };
 }

@@ -7,6 +7,7 @@ import { soundManager } from '@/lib/sound/sound-manager';
 import { allowedStarts } from '@/lib/game/hangul';
 import { Link2 } from 'lucide-react';
 import { useGameBgm } from '@/hooks/useGameBgm';
+import { schoolGate } from '@/lib/gb/school';
 import { useGameResult, hitAccuracy } from '@/hooks/useGameResult';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { wordGenerator } from '@/lib/content/word-generator';
@@ -338,7 +339,7 @@ export default function PuzzleGamePage() {
             </ul>
           </Card>
         </div>
-        <Button size="lg" onClick={startGame}>
+        <Button size="lg" onClick={() => schoolGate(startGame)}>
           {isKorean ? '게임 시작' : 'Start Game'}
         </Button>
       </div>
@@ -380,7 +381,7 @@ export default function PuzzleGamePage() {
             </div>
           </Card>
         </div>
-        <Button size="lg" onClick={startGame}>{isKorean ? '다시 도전' : 'Play Again'}</Button>
+        <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '다시 도전' : 'Play Again'}</Button>
       </div>
     );
   }

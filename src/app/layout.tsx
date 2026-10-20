@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "@/lib/gb/gb-ui.css";
 import { Header } from "@/components/layout/Header";
 import { GlobalOverlays } from "@/components/common/GlobalOverlays";
 
