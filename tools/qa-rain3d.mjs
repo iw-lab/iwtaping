@@ -39,11 +39,14 @@ async function open(query = '') {
   await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
   page.on('console', (m) => { if (m.type() === 'error' && !/hub|Failed to load resource/.test(m.text())) errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
-  await page.goto(`${BASE}/game/rain/${query}`, { waitUntil: 'networkidle0' });
+  await page.goto(`${BASE}/game/rain/${query}`, { waitUntil: 'networkidle2' });
   return page;
 }
 async function start(page) {
   await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /게임 시작|Start Game/.test(b.textContent))?.click());
+  // 배포본 = 허브가 살아 있다 → 새 기기는 «학교 정하기»가 먼저 뜬다. 실측은 «목록에 없어요»(학교 점수 없이)로 — 진짜 학교 순위를 건드리지 않는다
+  const picked = await page.waitForSelector('[data-gb-none]', { timeout: 5000 }).then((b) => b.click().then(() => true)).catch(() => false);
+  if (picked) console.log('  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)');
   await page.waitForFunction(() => !!window.__rain, { timeout: 15000 });
   await sleep(1200);
 }
@@ -108,8 +111,8 @@ try {
   // R5 나갔다 들어오기 — 메뉴로 돌아가 다시 시작해도 GPU 자원 수가 같아야 한다
   const mem1 = await page.evaluate(() => window.__rain.scene()?.info());
   await page.evaluate(() => { window.__rain.core.over = true; });
-  await page.goto(`${BASE}/game/`, { waitUntil: 'networkidle0' });
-  await page.goto(`${BASE}/game/rain/`, { waitUntil: 'networkidle0' });
+  await page.goto(`${BASE}/game/`, { waitUntil: 'networkidle2' });
+  await page.goto(`${BASE}/game/rain/`, { waitUntil: 'networkidle2' });
   await start(page); await sleep(1500);
   const mem2 = await page.evaluate(() => window.__rain.scene()?.info());
   check('R5 다시 들어와도 geometry·texture 수 그대로', !!mem1 && !!mem2 && mem2.geometries <= mem1.geometries + 2 && mem2.textures <= mem1.textures, `${JSON.stringify(mem1)} → ${JSON.stringify(mem2)}`);
@@ -127,7 +130,7 @@ try {
     const b = await puppeteer.launch({ headless: 'new', executablePath: exe || undefined, args });
     try {
       const pg = await b.newPage(); await pg.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
-      await pg.goto(`${BASE}/game/rain/`, { waitUntil: 'networkidle0' });
+      await pg.goto(`${BASE}/game/rain/`, { waitUntil: 'networkidle2' });
       await start(pg); await sleep(6000);
       const cdp = await pg.createCDPSession(); await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
       const gaps = await pg.evaluate(() => new Promise((done) => {
