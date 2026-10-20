@@ -1,0 +1,17 @@
+{
+ "prompt": "Generate an image (landscape 4:3 image): the same kitten as the reference image driving a small round village bus painted sky blue, the kitten waves from the driver window, side three-quarter view, whole bus visible, centered, about 8% margin, warm hand-painted children's picture book style, soft gouache texture, gentle toon shading, thick dark navy outline, saturated cheerful palette, plain empty",
+ "out": "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/bus_1.png",
+ "t0": 1792507081.331908,
+ "refs": [
+  "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_tabi_happy.png"
+ ],
+ "w": 1448,
+ "h": 1086,
+ "src": "blob:https://chatgpt.com/d43a4d4f-21e1-42f2-b051-225357df59cd",
+ "bytes": "data-uri(data:image/png;base64)",
+ "verify": "1448x1086 · 2,954,999바이트",
+ "elapsed_s": 75.8,
+ "conversation": "https://chatgpt.com/c/6ad77c21-7190-83ee-84a7-d637ff0424c6",
+ "served_by": "chatgpt-web(모델 미노출 — 서버가 정한다)",
+ "attempts": 1
+}

@@ -1,0 +1,14 @@
+{
+ "prompt": "Generate an image (square 1:1 image): a cheerful raccoon playground keeper boy wearing a red cap backwards and a whistle on a string, striped tail, big happy open-mouth smile, eyes curved in joy, portrait from the waist up, three-quarter front view, bottom edge cut off at the waist, single character, centered, about 8% margin at top and sides, warm hand-painted children's picture book style, soft ",
+ "out": "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_neo_happy.png",
+ "t0": 1792504843.082083,
+ "w": 1254,
+ "h": 1254,
+ "src": "blob:https://chatgpt.com/3d8269e2-cae9-48c2-b41c-8463dd1cfd16",
+ "bytes": "data-uri(data:image/png;base64)",
+ "verify": "1254x1254 · 3,115,654바이트",
+ "elapsed_s": 70.4,
+ "conversation": "https://chatgpt.com/c/6ad772be-8cd0-83ee-9afa-532f262a3452",
+ "served_by": "chatgpt-web(모델 미노출 — 서버가 정한다)",
+ "attempts": 1
+}

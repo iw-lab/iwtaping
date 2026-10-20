@@ -1,0 +1,17 @@
+{
+ "prompt": "Generate an image (square 1:1 image): the same character as the reference image: a tiny brave squirrel knight wearing an acorn-cap helmet and a small blue cape, holding a wooden toy sword, worried look with eyebrows up and a small wobbly mouth, portrait from the waist up, three-quarter front view, bottom edge cut off at the waist, single character, centered, about 8% margin at top and sides, warm ",
+ "out": "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_dotori_worry.png",
+ "t0": 1792506452.652509,
+ "refs": [
+  "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_dotori_happy.png"
+ ],
+ "w": 1254,
+ "h": 1254,
+ "src": "blob:https://chatgpt.com/9494c3f1-427e-4290-807f-0ce6a1f64e32",
+ "bytes": "data-uri(data:image/png;base64)",
+ "verify": "1254x1254 · 3,093,893바이트",
+ "elapsed_s": 85.9,
+ "conversation": "https://chatgpt.com/c/6ad778a5-4774-83ee-af2c-3b1551081c69",
+ "served_by": "chatgpt-web(모델 미노출 — 서버가 정한다)",
+ "attempts": 1
+}

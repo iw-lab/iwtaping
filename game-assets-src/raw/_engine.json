@@ -1,0 +1,122 @@
+{
+ "pt_tabi_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792505162
+ },
+ "pt_ink_grumpy.png": {
+  "engine": "gptweb",
+  "ts": 1792505162
+ },
+ "pt_bomi_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792505162
+ },
+ "pt_bolt_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792508204
+ },
+ "pt_neo_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792505162
+ },
+ "pt_dotori_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792505162
+ },
+ "pt_beon_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792508204
+ },
+ "pt_kkobuk_happy.png": {
+  "engine": "gptweb",
+  "ts": 1792505162
+ },
+ "pt_tabi_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_tabi_sad.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_tabi_determined.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_ink_flustered.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_ink_cry.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_ink_smile.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_bomi_worry.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_bomi_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_bolt_worry.png": {
+  "engine": "gptweb",
+  "ts": 1792508637
+ },
+ "pt_bolt_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792508637
+ },
+ "pt_neo_worry.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_neo_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_dotori_worry.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_dotori_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_beon_worry.png": {
+  "engine": "gptweb",
+  "ts": 1792508637
+ },
+ "pt_beon_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792508637
+ },
+ "pt_kkobuk_worry.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "pt_kkobuk_surprise.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "bus_1.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "bus_2.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "bus_3.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ },
+ "bus_4.png": {
+  "engine": "gptweb",
+  "ts": 1792507447
+ }
+}

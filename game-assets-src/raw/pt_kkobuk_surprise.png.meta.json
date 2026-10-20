@@ -1,0 +1,17 @@
+{
+ "prompt": "Generate an image (square 1:1 image): the same character as the reference image: a wise old turtle grandpa builder wearing round glasses and a yellow hard hat, holding a colorful toy block, surprised with wide round eyes and small round open mouth, portrait from the waist up, three-quarter front view, bottom edge cut off at the waist, single character, centered, about 8% margin at top and sides, w",
+ "out": "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_kkobuk_surprise.png",
+ "t0": 1792506979.4127722,
+ "refs": [
+  "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_kkobuk_happy.png"
+ ],
+ "w": 1254,
+ "h": 1254,
+ "src": "blob:https://chatgpt.com/95b47452-763c-4e03-b977-4ef7cbabd8fc",
+ "bytes": "data-uri(data:image/png;base64)",
+ "verify": "1254x1254 · 2,766,681바이트",
+ "elapsed_s": 93.9,
+ "conversation": "https://chatgpt.com/c/6ad77c21-7190-83ee-84a7-d637ff0424c6",
+ "served_by": "chatgpt-web(모델 미노출 — 서버가 정한다)",
+ "attempts": 1
+}

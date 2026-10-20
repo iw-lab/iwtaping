@@ -1,0 +1,17 @@
+{
+ "prompt": "Generate an image (landscape 4:3 image): the same kitten as the reference image driving a magical starlight bus glowing gold with star sparkles flying through a night sky, the kitten waves from the driver window, side three-quarter view, whole bus visible, centered, about 8% margin, warm hand-painted children's picture book style, soft gouache texture, gentle toon shading, thick dark navy outline,",
+ "out": "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/bus_4.png",
+ "t0": 1792507348.8081238,
+ "refs": [
+  "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_tabi_happy.png"
+ ],
+ "w": 1448,
+ "h": 1086,
+ "src": "blob:https://chatgpt.com/d6bd15f8-19d7-47e3-80e8-5c847b67b814",
+ "bytes": "data-uri(data:image/png;base64)",
+ "verify": "1448x1086 · 2,961,989바이트",
+ "elapsed_s": 98.1,
+ "conversation": "https://chatgpt.com/c/6ad77c21-7190-83ee-84a7-d637ff0424c6",
+ "served_by": "chatgpt-web(모델 미노출 — 서버가 정한다)",
+ "attempts": 1
+}

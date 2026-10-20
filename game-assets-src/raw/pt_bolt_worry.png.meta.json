@@ -1,0 +1,17 @@
+{
+ "prompt": "Generate an image (square 1:1 image): the same character as the reference image: a cute round little robot mechanic with a dome glass head, antenna with a glowing ball, orange body, wearing a tool belt, friendly LED eyes, worried look with eyebrows up and a small wobbly mouth, portrait from the waist up, three-quarter front view, bottom edge cut off at the waist, single character, centered, about ",
+ "out": "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_bolt_worry.png",
+ "t0": 1792508257.1642208,
+ "refs": [
+  "/Users/sim-insu/Documents/dev/iwtaping/game-assets-src/raw/pt_bolt_happy.png"
+ ],
+ "w": 1254,
+ "h": 1254,
+ "src": "blob:https://chatgpt.com/14d9818a-a982-4efe-a447-3a80f094f50e",
+ "bytes": "data-uri(data:image/png;base64)",
+ "verify": "1254x1254 · 2,719,002바이트",
+ "elapsed_s": 73.7,
+ "conversation": "https://chatgpt.com/c/6ad78175-7970-83ec-a81d-181a457cca27",
+ "served_by": "chatgpt-web(모델 미노출 — 서버가 정한다)",
+ "attempts": 1
+}
