@@ -1,4 +1,5 @@
 'use client';
+import { Trophy } from 'lucide-react';
 
 import { useEffect } from 'react';
 import Link from 'next/link';
@@ -152,7 +153,7 @@ export default function GamePage() {
                   </span>
                   {highScore != null && highScore > 0 && (
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(254,202,87,0.2)', color: 'var(--color-accent-warm)' }}>
-                      🏆 {highScore}
+                      <Trophy className="inline w-3 h-3 align-[-2px]" aria-hidden /> {highScore}
                     </span>
                   )}
                 </div>

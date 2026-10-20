@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { FREEZE_COST, MAX_FREEZES } from '@/lib/progress/streak';
+import { Coins, Flame, Snowflake } from 'lucide-react';
 
 /**
  * 스트릭 + 프리즈 구매.
@@ -33,15 +34,15 @@ export function StreakCard({ className = '' }: { className?: string }) {
         <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
           연속 연습
         </h3>
-        <span className="text-xs font-bold" style={{ color: 'var(--color-accent-warm)' }}>
-          🪙 {progress.coins.toLocaleString()}
+        <span className="text-xs font-bold inline-flex items-center gap-1" style={{ color: 'var(--color-accent-warm)' }}>
+          <Coins className="w-3.5 h-3.5" aria-hidden /> {progress.coins.toLocaleString()}
         </span>
       </div>
 
       <div className="flex items-center gap-4">
         <div>
           <div className="text-3xl font-black leading-none" style={{ fontFamily: "'JetBrains Mono'", color: '#FECA57' }}>
-            🔥 {progress.streakDays}
+            <Flame className="inline w-7 h-7 align-[-4px]" aria-hidden /> {progress.streakDays}
           </div>
           <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
             일 연속
@@ -57,7 +58,7 @@ export function StreakCard({ className = '' }: { className?: string }) {
                 style={{ opacity: i < progress.freezes ? 1 : 0.25 }}
                 aria-hidden
               >
-                🧊
+                <Snowflake className="w-4 h-4" style={{ color: '#7fd6ff' }} />
               </span>
             ))}
             <span className="text-xs ml-1" style={{ color: 'var(--text-muted)' }}>

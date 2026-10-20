@@ -108,3 +108,17 @@ describe('킹덤 디펜스 코어', () => {
     expect(core.score).toBe(before + e.text.length * 10);
   });
 });
+
+describe('디펜스 모드', () => {
+  const mk = (mode: 'classic' | 'time' | 'survival' | 'daily') => new DefenseCore({ W: 900, H: 500, isKorean: true, rng: seededRng(3), pickWord: () => '병정', mode });
+  it('60초 모드는 60초에 끝난다', () => {
+    const c = mk('time'); let t = 0;
+    while (!c.over && t < 200000) { t += 16; c.tick(t); }
+    expect(c.over).toBe(true); expect(t).toBeLessThan(62000);
+  });
+  it('목숨 3개 모드 = 성 체력 3 · 세 번 뚫리면 끝', () => {
+    const c = mk('survival'); expect(c.castleHp).toBe(3);
+    let t = 0; while (!c.over && t < 400000) { t += 16; c.tick(t); }
+    expect(c.over).toBe(true); expect(c.castleHp).toBe(0);
+  });
+});

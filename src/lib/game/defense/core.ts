@@ -64,7 +64,13 @@ export interface DefenseCoreOptions {
   rng: () => number;
   /** 최소 글자 수를 받아 단어 하나를 고른다 */
   pickWord: (minLen: number) => string;
+  mode?: DefenseMode;
 }
+
+/** 모드 — classic(성 체력 20) · time(60초) · survival(성 체력 3·회복 없음·점점 빨라짐) · daily(날짜 시드 — 페이지가 rng·단어를 고정) */
+export type DefenseMode = 'classic' | 'time' | 'survival' | 'daily';
+export const TIME_LIMIT_MS = 60_000;
+export const SURVIVAL_HP = 3;
 
 /** mulberry32 — 시험용 결정적 난수 */
 export function seededRng(seed: number): () => number {
@@ -98,11 +104,25 @@ export class DefenseCore {
   attempts = 0;
   freezeUntil = 0;
   over = false;
+  readonly mode: DefenseMode;
+  /** 첫 tick 시각 — 60초 모드 남은 시간 */
+  startedAt = -1;
   private nextId = 0;
   private lastSpawn = 0;
 
   constructor(opts: DefenseCoreOptions) {
     this.opts = opts;
+    this.mode = opts.mode ?? 'classic';
+    this.castleHp = this.maxHp();
+  }
+
+  /** 성 체력 상한 — 목숨 3개 모드는 3 */
+  maxHp(): number { return this.mode === 'survival' ? SURVIVAL_HP : CASTLE_HP_START; }
+
+  /** 남은 시간(ms) — 60초 모드만, 그 밖은 null */
+  remaining(time: number): number | null {
+    if (this.mode !== 'time') return null;
+    return this.startedAt < 0 ? TIME_LIMIT_MS : Math.max(0, TIME_LIMIT_MS - (time - this.startedAt));
   }
 
   isFrozen(time: number): boolean { return time < this.freezeUntil; }
@@ -121,6 +141,9 @@ export class DefenseCore {
   tick(time: number): DefenseEvent[] {
     const ev: DefenseEvent[] = [];
     if (this.over) return ev;
+    if (this.startedAt < 0) this.startedAt = time;
+    const rem = this.remaining(time);
+    if (rem !== null && rem <= 0) { this.over = true; ev.push({ type: 'gameover' }); return ev; }
     const { W, H, isKorean, rng, pickWord } = this.opts;
     const wave = this.wave;
 
@@ -156,7 +179,7 @@ export class DefenseCore {
         text,
         x: -20,
         y: this.laneY(bestLane) + (rng() * 8 - 4),
-        speed: (0.25 + wave * 0.04) * (isSpecial ? 0.55 : 1),
+        speed: (0.25 + wave * 0.04) * (isSpecial ? 0.55 : 1) * (this.mode === 'survival' ? 1 + (wave - 1) * 0.08 : 1),
         hp,
         color: isSpecial ? '#FECA57' : ENEMY_COLORS[Math.floor(rng() * ENEMY_COLORS.length)],
         type,
@@ -245,7 +268,8 @@ export class DefenseCore {
     if (this.kills % WAVE_KILL_STEP === 0) {
       this.wave += 1;
       ev.push({ type: 'waveup', wave: this.wave });
-      if (this.castleHp < CASTLE_HP_START) this.castleHp = Math.min(CASTLE_HP_START, this.castleHp + 2);
+      // 목숨 3개 모드는 웨이브 회복이 없다
+      if (this.mode !== 'survival' && this.castleHp < CASTLE_HP_START) this.castleHp = Math.min(CASTLE_HP_START, this.castleHp + 2);
     }
     return ev;
   }
@@ -260,7 +284,7 @@ export class DefenseCore {
       this.gold += 3 * cleared.length;
       this.enemies = this.enemies.filter((e) => e.dying);
     } else if (ability === 'heal') {
-      this.castleHp = Math.min(CASTLE_HP_START, this.castleHp + 4);
+      this.castleHp = Math.min(this.maxHp(), this.castleHp + (this.mode === 'survival' ? 1 : 4));
     }
     return { type: 'ability', ability, cleared };
   }

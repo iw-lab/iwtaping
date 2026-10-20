@@ -22,11 +22,13 @@ import { createGameJuice } from '@/lib/game/juice-table';
 import { drawVectorIcon, ICON_SNOWFLAKE } from '@/lib/game/canvas-icons';
 import { AbilityIcon } from '@/components/common/AbilityIcon';
 import {
-  DefenseCore, CASTLE_HP_START,
+  DefenseCore, CASTLE_HP_START, seededRng, seedFromString,
   type Ability, type DefenseEnemy, type DefenseEvent,
 } from '@/lib/game/defense/core';
 import type { DefenseScene } from '@/lib/game3d/defense-scene';
 import { FullscreenButton } from '@/components/game/FullscreenButton';
+import { ModePicker, useGameMode, saveBest, todayKey } from '@/components/game/ModePicker';
+import { Snowflake, Zap, Heart } from 'lucide-react';
 
 const DEFENSE_SPRITES = {
   'defense-bg': '/game/defense/bg.webp',
@@ -56,6 +58,8 @@ export default function DefenseGamePage() {
   const [wave, setWave] = useState(1);
   const [gold, setGold] = useState(0);
   const [castleHp, setCastleHp] = useState(CASTLE_HP_START);
+  const [mode, setMode] = useGameMode('defense');
+  const [newBest, setNewBest] = useState(false);
   const [input, setInput] = useState('');
   const [countdown, setCountdown] = useState(3);
   const [wordPool, setWordPool] = useState<string[]>([]);
@@ -131,8 +135,9 @@ export default function DefenseGamePage() {
     const c = coreRef.current;
     if (status === 'gameover' && c && c.score > 0) {
       void submitGameScore('defense', c.score, Date.now() - startedAtRef.current, settings.language);
+      setNewBest(saveBest('defense', mode, c.score));
     }
-  }, [status, settings.language]);
+  }, [status, settings.language, mode]);
 
   // 일일 퀘스트·도전과제에 이 판을 반영한다(한 번도 입력하지 않은 판은 제외).
   // 킹덤 디펜스는 콤보 시스템이 없어 maxCombo는 0으로 둔다.
@@ -153,7 +158,7 @@ export default function DefenseGamePage() {
   const startGame = () => {
     setStatus('countdown');
     startedAtRef.current = Date.now();
-    setScore(0); setWave(1); setGold(0); setCastleHp(CASTLE_HP_START);
+    setScore(0); setWave(1); setGold(0); setCastleHp(mode === 'survival' ? 3 : CASTLE_HP_START); setNewBest(false);
     setInput(''); setKillCount(0);
     coreRef.current = null;
     setEffectMsg(null);
@@ -236,9 +241,18 @@ export default function DefenseGamePage() {
     const particles = particlesRef.current;
     const shake = shakeRef.current;
 
+    // 오늘의 판 = 날짜 시드 + 정렬한 단어 목록(모두 같은 순서) · 그 밖 = 기존 무작위
+    const daily = mode === 'daily';
+    const rng = daily ? seededRng(seedFromString(`defense:${todayKey()}:${settings.language}`)) : Math.random;
+    const dailyPool = daily ? [...wordPool].sort() : wordPool;
     const core = new DefenseCore({
-      W, H, isKorean, rng: Math.random,
-      pickWord: (minLen) => wordGenerator.getUniqueWord(wordPool, minLen),
+      W, H, isKorean, rng, mode,
+      pickWord: (minLen) => {
+        if (!daily) return wordGenerator.getUniqueWord(wordPool, minLen);
+        const ok = dailyPool.filter((w) => w.length >= minLen);
+        const base = ok.length ? ok : dailyPool;
+        return base[Math.floor(rng() * base.length)] || '';
+      },
     });
     coreRef.current = core;
     // 시험 손잡이(읽기 전용 관찰 — 판정·점수는 화면 입력으로만 바뀐다)
@@ -273,7 +287,7 @@ export default function DefenseGamePage() {
         drawDefenseBackdrop(ctx, W, H, time);
         // Castle — AI sprite with HP bar + damage tint, else procedural (damage states built-in)
         if (drawSprite(ctx, 'defense-castle', castleBaseX, castleBaseY - 72, { h: 150 })) {
-          const hpRatio = Math.max(0, hpVal / CASTLE_HP_START);
+          const hpRatio = Math.max(0, hpVal / core.maxHp());
           if (hpRatio < 1) {
             ctx.save();
             ctx.globalAlpha = (1 - hpRatio) * 0.35;
@@ -287,7 +301,7 @@ export default function DefenseGamePage() {
           ctx.fillStyle = hpRatio > 0.5 ? '#48DBFB' : hpRatio > 0.25 ? '#FECA57' : '#FF6B6B';
           ctx.fillRect(barX, barY, barW * hpRatio, 4);
         } else {
-          drawCastleDetailed(ctx, castleBaseX, castleBaseY - 20, hpVal, CASTLE_HP_START, time);
+          drawCastleDetailed(ctx, castleBaseX, castleBaseY - 20, hpVal, core.maxHp(), time);
         }
       }
 
@@ -385,11 +399,12 @@ export default function DefenseGamePage() {
 
       // 3D 판은 성 체력 바를 그려 주지 않으므로(그림은 3D 쪽) HUD 에 따로 띄운다.
       if (scene) {
-        drawShieldBar(ctx, 20, H - 30, hpVal, CASTLE_HP_START, W - 40);
+        drawShieldBar(ctx, 20, H - 30, hpVal, core.maxHp(), W - 40);
         ctx.font = "bold 12px 'JetBrains Mono', 'Noto Sans KR', monospace";
         ctx.fillStyle = '#E8E8FF';
         ctx.textAlign = 'center';
-        ctx.fillText(`성 체력 ${hpVal}`, W / 2, H - 12);
+        const rem = core.remaining(time);
+        ctx.fillText(rem !== null ? `성 체력 ${hpVal} · 남은 ${Math.ceil(rem / 1000)}초` : `성 체력 ${hpVal}`, W / 2, H - 12);
       }
 
       // HUD
@@ -443,7 +458,7 @@ export default function DefenseGamePage() {
       sceneRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, wordPool, isKorean, is3d]);
+  }, [status, wordPool, isKorean, is3d, mode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -485,11 +500,14 @@ export default function DefenseGamePage() {
           {isKorean ? '성을 지키며 타이핑하세요!' : 'Defend your castle by typing!'}
         </p>
         {isKorean && (
-          <p className="mb-6 text-sm max-w-md mx-auto" style={{ color: 'var(--text-muted)' }}>
-            ✨ 금빛으로 빛나는 <b style={{ color: '#FECA57' }}>특수 병사</b>를 격퇴하면 능력 발동 —
-            ❄️ 일시정지 · 💥 전체 격퇴 · 💚 성 수리 (점수 2배!)
+          <p className="mb-5 text-sm max-w-md mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1" style={{ color: 'var(--text-muted)' }}>
+            <span>금빛 <b style={{ color: '#FECA57' }}>특수 병정</b>의 태엽을 풀면 능력 발동(점수 2배)</span>
+            <span className="inline-flex items-center gap-1"><Snowflake className="w-4 h-4" aria-hidden />일시정지</span>
+            <span className="inline-flex items-center gap-1"><Zap className="w-4 h-4" aria-hidden />모두 멈춤</span>
+            <span className="inline-flex items-center gap-1"><Heart className="w-4 h-4" aria-hidden />성 수리</span>
           </p>
         )}
+        <ModePicker game="defense" value={mode} onChange={setMode} />
         <Button size="lg" onClick={() => schoolGate(startGame)}>{isKorean ? '게임 시작' : 'Start Game'}</Button>
         <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
           {is3d ? '3D 화면' : '가벼운 화면(2D)'}
@@ -503,8 +521,9 @@ export default function DefenseGamePage() {
   if (status === 'gameover') return (
     <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
       <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-error)', fontFamily: "'Outfit'" }}>
-        {isKorean ? '성이 함락되었습니다!' : 'Castle Fallen!'}
+        {mode === 'time' ? (isKorean ? '시간 끝!' : "Time's up!") : (isKorean ? '성이 함락되었습니다!' : 'Castle Fallen!')}
       </h1>
+      {newBest && <p className="mb-3 font-bold" style={{ color: '#FECA57' }}>{isKorean ? '새 최고 기록!' : 'New best!'}</p>}
       <div className="grid grid-cols-3 gap-3 mb-8 max-w-md mx-auto">
         <Card className="p-3">
           <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{isKorean ? '점수' : 'SCORE'}</div>
