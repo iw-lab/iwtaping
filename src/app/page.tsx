@@ -30,7 +30,7 @@ const practiceCards = [
 ];
 
 const gameCards = [
-  { href: '/game/rain', icon: CloudRain, title: '산성비', desc: '떨어지는 단어 격파', color: '#6C5CE7' },
+  { href: '/game/rain', icon: CloudRain, title: '씨앗비', desc: '떨어지는 씨앗 단어를 심기', color: '#6C5CE7' },
   { href: '/game/space', icon: Rocket, title: '우주 방어', desc: '적 우주선 파괴', color: '#48DBFB' },
   { href: '/game/race', icon: CarFront, title: '타이핑 레이스', desc: 'AI와 속도 대결', color: '#FECA57' },
   { href: '/game/defense', icon: Castle, title: '킹덤 디펜스', desc: '성 방어 타이핑', color: '#00B894' },

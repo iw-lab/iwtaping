@@ -40,7 +40,7 @@ export const ACHIEVEMENTS_LIST = [
   { key: 'word_10000', title: '만 단어', description: '10000개 단어 입력', icon: 'book-open' },
   { key: 'streak_3', title: '3일 연속', description: '3일 연속 연습', icon: 'calendar' },
   { key: 'streak_30', title: '30일 연속', description: '30일 연속 연습', icon: 'calendar-days' },
-  { key: 'rain_clear', title: '산성비 클리어', description: '산성비 레벨 10 클리어', icon: 'cloud-rain' },
+  { key: 'rain_clear', title: '씨앗비 클리어', description: '씨앗비 레벨 10 클리어', icon: 'cloud-rain' },
   { key: 'space_clear', title: '우주 방어 클리어', description: '우주 방어 레벨 10 클리어', icon: 'rocket' },
   { key: 'race_win', title: '레이스 우승', description: '타이핑 레이스 1등', icon: 'car-front' },
   { key: 'veteran', title: '베테랑', description: '누적 100세션 완료', icon: 'award' },

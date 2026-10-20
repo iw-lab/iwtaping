@@ -27,6 +27,7 @@ export function loadSchool(): Promise<Kit> {
  * 키트를 못 불러오면(오프라인·차단) 학교 점수 없이 바로 시작한다 — 판은 절대 막지 않는다.
  */
 export function schoolGate(start: () => void): void {
+  enterFullscreenNow(); // 기본틀 ③ 게임 들어가면 자동 전체화면 — 제스처 안에서 동기로(첫 줄)
   void loadSchool().then((kit) => {
     if (ticket) { void kit.gbLeave(ticket); ticket = null; }
     void kit.gbGate((ref: string | null) => { ticket = ref; start(); });
@@ -45,4 +46,16 @@ export async function schoolFinish(accuracy: number) {
 export function schoolLeave(): void {
   const ref = ticket; ticket = null;
   if (ref) void loadSchool().then((kit) => kit.gbLeave(ref));
+}
+
+/** 시작 단추 클릭(제스처) 안에서 동기로 부른다 — await 뒤엔 브라우저가 거절한다. 설정 «gb.fs.auto»=0 이면 안 한다. */
+export function enterFullscreenNow(): void {
+  try {
+    if (localStorage.getItem('gb.fs.auto') === '0') return;
+    const d = document as Document & { webkitFullscreenElement?: Element };
+    if (d.fullscreenElement || d.webkitFullscreenElement) return;
+    const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
+    const p = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
+    if (p && typeof (p as Promise<void>).catch === 'function') (p as Promise<void>).catch(() => { /* 정책 거절 — 조용히 */ });
+  } catch { /* */ }
 }

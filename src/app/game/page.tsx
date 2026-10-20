@@ -109,7 +109,7 @@ export default function GamePage() {
   }, [loadStats]);
 
   const games = [
-    { href: '/game/rain', icon: <RainIcon />, title: isKorean ? '산성비' : 'Acid Rain', desc: isKorean ? '떨어지는 단어를 입력해서 제거하세요' : 'Type falling words to clear them', difficulty: isKorean ? '쉬움~어려움' : 'Easy~Hard' },
+    { href: '/game/rain', icon: <RainIcon />, title: isKorean ? '씨앗비' : 'Seed Rain', desc: isKorean ? '떨어지는 씨앗 단어를 쳐서 화분에 심어요' : 'Type falling seed words to plant them', difficulty: isKorean ? '쉬움~어려움' : 'Easy~Hard' },
     { href: '/game/space', icon: <SpaceIcon />, title: isKorean ? '우주 방어' : 'Space Defense', desc: isKorean ? '적 우주선의 단어를 입력해서 격파하세요' : 'Destroy enemy ships by typing', difficulty: isKorean ? '보통~어려움' : 'Medium~Hard' },
     { href: '/game/race', icon: <RaceIcon />, title: isKorean ? '타이핑 레이스' : 'Typing Race', desc: isKorean ? 'AI 라이벌과 타이핑 속도 대결' : 'Race against AI opponents', difficulty: isKorean ? '보통' : 'Medium' },
     { href: '/game/defense', icon: <DefenseIcon />, title: isKorean ? '킹덤 디펜스' : 'Kingdom Defense', desc: isKorean ? '성을 지키며 타이핑하는 전략 게임' : 'Defend your castle with typing', difficulty: isKorean ? '어려움' : 'Hard' },

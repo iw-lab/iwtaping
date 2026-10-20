@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/ui/Button';
 import { Mascot } from '@/components/mascot/Mascot';
@@ -36,14 +37,17 @@ export function AccountOnboarding() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // 계정이 없고 아직 안 닫았으면 자동으로 연다
+  // 계정이 없고 아직 안 닫았으면 자동으로 연다 — 단 게임 화면(/game/…)에선 열지 않는다.
+  // 계정 확인은 비동기라 판이 시작된 뒤에 창이 떠서 떨어지는 단어를 가렸다(2026-10-20 씨앗비 3D 실측). 홈·다른 화면에서 연다.
+  const pathname = usePathname() || '';
+  const inGame = pathname.startsWith('/game/') && pathname.replace(/\/$/, '') !== '/game';
   useEffect(() => {
-    if (status === 'unregistered') {
+    if (status === 'unregistered' && !inGame) {
       const seen = typeof window !== 'undefined' && localStorage.getItem(DISMISS_KEY);
       if (!seen) setOpen(true);
     }
     if (status === 'online') setOpen(false);
-  }, [status]);
+  }, [status, inGame]);
 
   const dismiss = () => {
     try { localStorage.setItem(DISMISS_KEY, '1'); } catch { /* ignore */ }

@@ -29,7 +29,7 @@ interface RankEntry {
 }
 
 const GAME_NAMES: Record<string, string> = {
-  rain: '산성비',
+  rain: '씨앗비',
   space: '우주 방어',
   race: '타이핑 레이스',
   defense: '킹덤 디펜스',
