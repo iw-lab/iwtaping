@@ -386,7 +386,8 @@ export default function SpaceGamePage() {
         }
       }
 
-      resolveLabels(labels, spriteBoxes, { canvasH: H });
+      // 3D 판은 드론이 라벨 밑 3D 에 있어 «몸통 가림»보다 «라벨끼리 겹침(글자를 못 읽음)»이 더 나쁘다 — 배포본 실측 20표본 내내 겹침(2026-10-21)
+      resolveLabels(labels, spriteBoxes, { canvasH: H, labelWeight: scene ? 8 : 1 });
       for (const L of labels) {
         L.e.labelShift = easeLabelShift(L.e.labelShift, L.offset);
         const y = L.homeY + L.e.labelShift;
