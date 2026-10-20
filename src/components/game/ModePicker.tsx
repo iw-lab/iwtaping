@@ -1,7 +1,7 @@
 'use client';
 // 게임 모드 카드(기본틀 ④ — 모드 4종 이상). 카드는 모두 같은 크기·같은 모양: 아이콘 + 이름 + 한 줄 설명 + 최고 기록.
 // 고른 모드는 기기에 기억한다(`typingverse:<게임>:mode`). data-gb-mode 는 gate-baseline 이 세는 표지.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CloudRain, Timer, Heart, CalendarDays, type LucideIcon } from 'lucide-react';
 
 export type GameMode = 'classic' | 'time' | 'survival' | 'daily';
@@ -41,25 +41,35 @@ export function useGameMode(game: string): [GameMode, (m: GameMode) => void] {
 /** 오늘 날짜(현지) 문자열 — daily 시드 */
 export const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 
+const KIT_ICON: Record<GameMode, string> = { classic: 'play', time: 'timer', survival: 'heart', daily: 'sparkle' };
+
+/** 모드 카드 — 키트 틀(gb-modes renderModeCards · 같은 크기·같은 모양 카드)을 그대로 쓴다(gate-baseline S4). */
 export function ModePicker({ game, value, onChange, modes = DEFAULT_MODES }: { game: string; value: GameMode; onChange: (m: GameMode) => void; modes?: ModeInfo[] }) {
-  const [best, setBest] = useState<Partial<Record<GameMode, number>>>({});
-  useEffect(() => { setBest(readBest(game)); }, [game]);
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-2xl mx-auto mb-6" role="radiogroup" aria-label="게임 모드">
-      {modes.map((m) => {
-        const on = m.id === value;
-        const Icon = m.icon;
-        return (
-          <button key={m.id} type="button" role="radio" aria-checked={on} data-gb-mode={m.id} onClick={() => onChange(m.id)}
-            className="flex flex-col items-center gap-1 rounded-xl border px-2 py-3 min-h-[96px] transition-colors"
-            style={{ borderColor: on ? 'var(--color-primary)' : 'var(--key-border)', background: on ? 'rgba(108,92,231,0.14)' : 'var(--bg-card)' }}>
-            <Icon className="w-5 h-5" aria-hidden style={{ color: on ? 'var(--color-primary)' : 'var(--text-secondary)' }} />
-            <span className="text-sm font-bold">{m.label}</span>
-            <span className="text-xs leading-tight" style={{ color: 'var(--text-muted)' }}>{m.desc}</span>
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{best[m.id] != null ? `최고 ${best[m.id]}` : ' '}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  const ref = useRef<HTMLDivElement>(null);
+  const pick = useRef(onChange);
+  useEffect(() => { pick.current = onChange; });
+  useEffect(() => {
+    let alive = true;
+    void Promise.all([import('@/lib/gb/gb-modes.js'), import('@/lib/gb/gb-icons.js')]).then(([M, I]) => {
+      const el = ref.current; if (!alive || !el) return;
+      const best = readBest(game);
+      M.renderModeCards(el, modes.map((m) => ({
+        id: m.id, kind: m.id, icon: I.gbIcon(KIT_ICON[m.id]), label: m.label, desc: m.desc,
+        best: best[m.id] != null ? `최고 ${best[m.id]}` : '',
+      })), (id: string) => pick.current(id as GameMode));
+      mark(el, value);
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game, modes]);
+  useEffect(() => { if (ref.current) mark(ref.current, value); }, [value]);
+  return <div ref={ref} className="max-w-2xl mx-auto mb-6" role="radiogroup" aria-label="게임 모드" />;
+}
+
+function mark(el: HTMLElement, value: string) {
+  el.querySelectorAll<HTMLElement>('.gb-mode').forEach((b) => {
+    const on = b.dataset.id === value;
+    b.classList.toggle('is-sel', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
 }

@@ -561,3 +561,4 @@ body::before {
 .gbs.out { opacity: 0; transition: opacity .18s; }
 @media (max-aspect-ratio: 3/4) { .gbs-face { height: min(46vh, 420px); max-width: 64vw; } .gbs-face.left { left: -4vw; } .gbs-face.right { right: -4vw; } }
 @media (prefers-reduced-motion: reduce) { .gbs-face, .gbs-face.pop, .gbs.ready .gbs-next { animation: none; transition: none; } }
+.gb-mode.is-sel { outline: 2px solid var(--color-primary, #6c5ce7); outline-offset: 2px; }
