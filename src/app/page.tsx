@@ -16,6 +16,7 @@ import { formatTime, getToday } from '@/lib/utils/helpers';
 import { CloudRain, Rocket, CarFront, Castle, Skull, Link2, Keyboard, Gamepad2, Globe, BookOpen, Coins, Star } from 'lucide-react';
 import { DataIcon } from '@/components/common/DataIcon';
 import { SchoolRankCard } from '@/components/school/SchoolRankCard';
+import { BusCard } from '@/components/story/BusCard';
 
 const SLOGAN = '손끝으로 여는 무한한 세계';
 
@@ -78,6 +79,7 @@ export default function Home() {
     <div className="max-w-[1400px] mx-auto px-4 py-6">
       {/* 학교 순위 — 첫 화면 맨 위(기본틀) */}
       <SchoolRankCard />
+      <BusCard />
       {/* Hero Section with Mascot */}
       <section className="relative text-center py-12 md:py-16 overflow-hidden">
         {/* Background decoration */}

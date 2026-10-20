@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useGameStore } from '@/stores/useGameStore';
 import type { GameResult } from '@/types/game';
 import { schoolFinish, schoolLeave } from '@/lib/gb/school';
+import { loadBook, saveBook, addGame } from '@/lib/story/book';
 
 /**
  * 게임 한 판이 끝났을 때 결과를 useGameStore에 딱 한 번만 기록한다.
@@ -42,6 +43,8 @@ export function useGameResult(
     useGameStore.getState().addResult({ ...partial, timestamp: Date.now() });
     // 학교 순위 — 판 하나 = 영수증 하나 · 정확도 90% 이상이면 학교 +1(lib/gb/school.ts)
     void schoolFinish(partial.accuracy ?? 0);
+    // 타비의 버스 — 정확도 별로 버스가 자라고 그 정류장 주인과 친해진다(이야기는 홈에서 이어 본다 · 판 안 대화창 0)
+    try { const b = loadBook(localStorage); addGame(b, partial); saveBook(localStorage, b); } catch { /* 저장 못 해도 결과 화면은 그대로 */ }
   }, [finished]);
 
   // 판 도중에 페이지를 떠나면 영수증을 닫는다(90초 안 = 환불)

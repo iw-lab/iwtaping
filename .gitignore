@@ -47,3 +47,7 @@ game-assets-src/
 # 학교 허브 비밀(키트)
 .secrets/
 screenshots/
+game-assets-src/raw/*.png
+game-assets-src/*.log
+game-assets-src/ref_cat.png
+game-assets-src/cut/

@@ -1,0 +1,98 @@
+{
+  "meta": { "maxChars": 46, "portrait": "/story/portraits/{who}_{ex}.webp" },
+  "cast": {
+    "tabi": { "name": "타비", "side": "left", "color": "#9fb4ff", "exprs": ["happy", "surprise", "sad", "determined"] },
+    "ink": { "name": "잉크 망토", "side": "right", "color": "#b48cff", "exprs": ["grumpy", "flustered", "cry", "smile"] },
+    "bomi": { "name": "봄이", "side": "right", "color": "#8fe39a", "exprs": ["happy", "worry", "surprise"] },
+    "bolt": { "name": "볼트", "side": "right", "color": "#ffb36b", "exprs": ["happy", "worry", "surprise"] },
+    "neo": { "name": "너구 반장", "side": "right", "color": "#ff8a8a", "exprs": ["happy", "worry", "surprise"] },
+    "dotori": { "name": "도토리 기사", "side": "right", "color": "#7cc4ff", "exprs": ["happy", "worry", "surprise"] },
+    "beon": { "name": "번개", "side": "right", "color": "#ffe066", "exprs": ["happy", "worry", "surprise"] },
+    "kkobuk": { "name": "꼬북 할아버지", "side": "right", "color": "#c9e27a", "exprs": ["happy", "worry", "surprise"] }
+  },
+  "scenes": {
+    "prologue": [
+      { "who": "ink", "ex": "grumpy", "say": "글자는 시끄러워. 정류장 이름을 다 지워 버릴 테야!" },
+      { "who": "tabi", "ex": "surprise", "say": "앗, 버스 정류장 글자가 하나도 없어!" },
+      { "who": "tabi", "ex": "determined", "say": "글자를 쳐서 노선을 다시 잇자. 같이 갈래?" },
+      { "choice": [{ "text": "좋아, 출발!" }, { "text": "잉크 망토는 왜 그럴까?", "goto": "prologue_why" }] }
+    ],
+    "prologue_why": [
+      { "who": "tabi", "ex": "sad", "say": "음… 잉크 망토도 무슨 사정이 있을지 몰라." },
+      { "who": "tabi", "ex": "happy", "say": "정류장을 돌다 보면 알게 될 거야. 출발!" }
+    ],
+    "stop_rain": [
+      { "who": "bomi", "ex": "worry", "say": "씨앗섬 화분이 텅 비었어. 씨앗 이름이 지워졌거든." },
+      { "who": "bomi", "ex": "happy", "say": "네가 친 단어마다 꽃이 피었어! 고마워!" },
+      { "who": "tabi", "ex": "happy", "say": "씨앗섬 정류장, 다시 연결 완료!" }
+    ],
+    "stop_space": [
+      { "who": "bolt", "ex": "worry", "say": "삐빗… 드론들 이름표가 지워져서 길을 잃었어." },
+      { "who": "bolt", "ex": "surprise", "say": "수리 광선으로 다 고쳤다고? 대단해!" },
+      { "who": "tabi", "ex": "happy", "say": "우주 정거장 정류장도 불이 켜졌어!" }
+    ],
+    "stop_zombie": [
+      { "who": "neo", "ex": "worry", "say": "놀이터 슬라임들이 화가 났어. 이름을 잃어서래." },
+      { "who": "neo", "ex": "happy", "say": "이름을 불러 주니까 다시 친구가 됐어!" },
+      { "who": "tabi", "ex": "happy", "say": "놀이터 정류장, 다시 웃음소리가 들려." }
+    ],
+    "stop_defense": [
+      { "who": "dotori", "ex": "worry", "say": "장난감 병정들 태엽이 마구 돌아. 멈춰 줘!" },
+      { "who": "dotori", "ex": "happy", "say": "성이 무사해! 너는 진짜 기사야!" },
+      { "who": "tabi", "ex": "determined", "say": "성 정류장도 이름을 되찾았어." }
+    ],
+    "stop_race": [
+      { "who": "beon", "ex": "surprise", "say": "트랙 표지판이 지워져서 다들 길을 헤매!" },
+      { "who": "beon", "ex": "happy", "say": "정확하게 치니까 차가 쌩쌩 달리네!" },
+      { "who": "tabi", "ex": "happy", "say": "트랙 정류장, 출발 신호 다시 켜짐!" }
+    ],
+    "stop_puzzle": [
+      { "who": "kkobuk", "ex": "worry", "say": "블록섬 다리가 끊겼단다. 낱말이 이어져야 놓이지." },
+      { "who": "kkobuk", "ex": "surprise", "say": "허허, 끝말을 척척 잇는구나!" },
+      { "who": "tabi", "ex": "happy", "say": "블록섬까지 다리가 놓였어!" }
+    ],
+    "ink_1": [
+      { "who": "ink", "ex": "flustered", "say": "왜 자꾸 글자를 다시 쓰는 거야…?" },
+      { "who": "tabi", "ex": "determined", "say": "글자가 있어야 서로 찾아갈 수 있으니까!" },
+      { "who": "ink", "ex": "grumpy", "say": "흥, 그래도 난 글자가 싫어." }
+    ],
+    "ink_2": [
+      { "who": "ink", "ex": "cry", "say": "나… 말할 때 자꾸 막혔어. 다들 웃었어." },
+      { "who": "ink", "ex": "cry", "say": "그래서 글자가 다 없어지면 좋겠다고 생각했어." },
+      { "who": "tabi", "ex": "sad", "say": "그랬구나. 많이 속상했겠다." }
+    ],
+    "grow_2": [
+      { "who": "tabi", "ex": "surprise", "say": "우와, 버스가 2층 버스가 됐어!" },
+      { "who": "tabi", "ex": "happy", "say": "네 정확한 손끝 덕분이야. 더 멀리 가 보자!" }
+    ],
+    "grow_3": [
+      { "who": "tabi", "ex": "surprise", "say": "버스에 날개가 돋았어! 하늘 길도 열렸어!" },
+      { "who": "tabi", "ex": "determined", "say": "이제 잉크 망토가 사는 구름 끝까지 갈 수 있어." }
+    ],
+    "grow_4": [
+      { "who": "tabi", "ex": "happy", "say": "별빛 버스 완성! 모든 노선이 반짝여!" }
+    ],
+    "finale": [
+      { "who": "ink", "ex": "flustered", "say": "여기까지 왔네… 나 혼내러 온 거야?" },
+      { "who": "tabi", "ex": "happy", "say": "아니. 같이 타자고 왔어. 천천히 말해도 돼." },
+      { "who": "ink", "ex": "cry", "say": "내 말도… 기다려 줄래?" },
+      { "who": "tabi", "ex": "happy", "say": "그럼! 글자는 기다려 주는 친구야." },
+      { "who": "ink", "ex": "smile", "say": "그럼 나도 정류장 이름을 같이 쓸래!" }
+    ]
+  },
+  "beats": [
+    { "id": "prologue", "when": { "first": 1 } },
+    { "id": "stop_rain", "when": { "bond.rain": 1 } },
+    { "id": "stop_space", "when": { "bond.space": 1 } },
+    { "id": "stop_zombie", "when": { "bond.zombie": 1 } },
+    { "id": "stop_defense", "when": { "bond.defense": 1 } },
+    { "id": "stop_race", "when": { "bond.race": 1 } },
+    { "id": "stop_puzzle", "when": { "bond.puzzle": 1 } },
+    { "id": "ink_1", "when": { "growth.xp": 15 } },
+    { "id": "grow_2", "when": { "growth.stage": 1 } },
+    { "id": "ink_2", "when": { "growth.xp": 50 } },
+    { "id": "grow_3", "when": { "growth.stage": 2 } },
+    { "id": "grow_4", "when": { "growth.stage": 3 } },
+    { "id": "finale", "when": { "growth.stage": 3 }, "ending": true }
+  ]
+}
