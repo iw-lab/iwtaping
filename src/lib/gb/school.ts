@@ -39,7 +39,8 @@ export async function schoolFinish(accuracy: number) {
   const ref = ticket; ticket = null;
   if (!ref) return null;
   const kit = await loadSchool();
-  return kit.gbFinish(ref, accuracy >= SCHOOL_ACCURACY);
+  // 끝 보고가 실패하면 영수증을 닫는다(환불) — 끝도 이탈도 못 하는 고아 영수증을 남기지 않는다(8way grok)
+  try { return await kit.gbFinish(ref, accuracy >= SCHOOL_ACCURACY); } catch { void kit.gbLeave(ref); return null; }
 }
 
 /** 판 중간에 나감(페이지 떠남) */

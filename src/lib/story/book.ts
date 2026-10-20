@@ -24,10 +24,11 @@ export function loadBook(storage: Pick<Storage, 'getItem'> | null): StoryBook {
     const d = raw ? JSON.parse(raw) : null;
     if (d && typeof d === 'object') {
       const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, v) : 0);
-      b.first = d.first ? 1 : 0;
+      // first 가 없거나 이상하면 처음 기기 그대로(1) — 빈 객체 {} 로 프롤로그가 사라지지 않게
+      if (d.first === 0 || d.first === false) b.first = 0;
       b.growth.xp = num(d.growth?.xp);
       if (d.growth?.bond && typeof d.growth.bond === 'object') for (const [k, v] of Object.entries(d.growth.bond)) b.growth.bond[k] = num(v);
-      if (d.storySeen && typeof d.storySeen === 'object') for (const k of Object.keys(d.storySeen)) b.storySeen[k] = 1;
+      if (d.storySeen && typeof d.storySeen === 'object') for (const [k, v] of Object.entries(d.storySeen)) if (v === 1 || v === true) b.storySeen[k] = 1;
     }
   } catch { /* 깨진 값 */ }
   return b;

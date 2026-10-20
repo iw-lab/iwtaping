@@ -99,7 +99,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, waitUntil
 
     members = (board.results ?? []).map((row, index) => ({
       rank: index + 1,
-      nickname: maskNickname(row.nickname),
+      nickname: maskNickname(row.nickname, row.user_id),
       avatar: row.avatar,
       xp: row.xp_earned,
       isMe: row.user_id === user.uid,

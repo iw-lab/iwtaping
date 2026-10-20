@@ -83,6 +83,9 @@ export function seedFromString(s: string): number {
   return h >>> 0;
 }
 
+/** 60Hz 한 프레임(ms) — speed 는 이 단위의 이동량 */
+const FRAME_MS = 1000 / 60;
+
 export class ZombieCore {
   readonly opts: ZombieCoreOptions;
   readonly mode: ZombieMode;
@@ -95,6 +98,8 @@ export class ZombieCore {
   attempts = 0;
   freezeUntil = 0;
   over = false;
+  /** 직전 tick 시각 — 주사율 보정 */
+  private lastTick = -1;
   /** 첫 tick 시각 — time 모드 남은 시간 계산 */
   startedAt = -1;
   private nextId = 0;
@@ -123,6 +128,11 @@ export class ZombieCore {
     const ev: ZombieEvent[] = [];
     if (this.over) return ev;
     if (this.startedAt < 0) this.startedAt = time;
+    // 화면 주사율과 무관하게 — 이동량은 «60Hz 한 프레임» 단위(speed)에 실제 경과 시간을 곱한다(144Hz 화면에서 2.4배 빨리 떨어지던 것 · 8way codex)
+    const k = this.lastTick < 0 ? 1 : Math.min(3, (time - this.lastTick) / FRAME_MS);
+    this.lastTick = time;
+    // 60초 모드는 이동·피격보다 먼저 끝낸다 — 같은 프레임에 «시간 끝»이 «사망»으로 바뀌지 않게(8way grok)
+    { const r0 = this.remaining(time); if (r0 !== null && r0 <= 0) { this.over = true; ev.push({ type: 'gameover' }); return ev; } }
     const { W, H, isKorean, rng, pickWord } = this.opts;
     const wave = this.level;
     const cx = W / 2;
@@ -173,8 +183,8 @@ export class ZombieCore {
     for (const z of this.units) {
       const a = Math.atan2(playerY - z.y, cx - z.x);
       if (!frozen) {
-        z.x += Math.cos(a) * z.speed;
-        z.y += Math.sin(a) * z.speed;
+        z.x += Math.cos(a) * z.speed * k;
+        z.y += Math.sin(a) * z.speed * k;
       }
       const dist = Math.hypot(z.x - cx, z.y - playerY);
       if (dist < HIT_RADIUS) {
@@ -217,7 +227,7 @@ export class ZombieCore {
     const z = this.units[idx];
     this.units.splice(idx, 1);
     // 특수 슬라임은 2배 점수 + 능력 발동 (점수 = 입력 길이 × 12 — 기존 판과 같다)
-    const points = raw.length * 12 * (z.special ? 2 : 1);
+    const points = text.length * 12 * (z.special ? 2 : 1);
     this.score += points;
     this.kills += 1;
     ev.push({ type: 'hit', zombie: z, points });

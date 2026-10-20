@@ -80,3 +80,20 @@ describe('씨앗비 코어', () => {
     expect(ev[0]).toMatchObject({ type: 'hit', points: 30 * (w.special ? 2 : 1) });
   });
 });
+
+describe('씨앗비 코어 — 8way 반영', () => {
+  it('앞뒤 공백으로 점수를 부풀릴 수 없다', () => {
+    const mk = () => { const c = new RainCore({ W: 800, H: 500, isKorean: true, rng: seededRng(9), pickWord: () => '무지개' }); c.tick(1000); return c; };
+    const a = mk(); a.submit('무지개', 1000);
+    const b = mk(); b.submit('   무지개      ', 1000);
+    expect(b.score).toBe(a.score);
+  });
+  it('화면 주사율(60Hz·144Hz)과 무관하게 같은 시간엔 같은 거리만큼 떨어진다', () => {
+    const run = (step: number) => {
+      const c = new RainCore({ W: 800, H: 500, isKorean: true, rng: seededRng(4), pickWord: () => '씨앗' });
+      for (let t = 1000; t <= 3000; t += step) c.tick(t);
+      return c.words[0].y;
+    };
+    expect(Math.abs(run(1000 / 144) - run(1000 / 60))).toBeLessThan(2);
+  });
+});

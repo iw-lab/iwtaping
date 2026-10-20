@@ -1,4 +1,4 @@
-import { publicNick, isGenNick, genNickFrom } from '../../src/lib/moderation/gen-nick';
+import { isGenNick, genNickFrom } from '../../src/lib/moderation/gen-nick';
 export { isGenNick, genNickFrom };
 import { verifyToken } from './auth';
 import { checkNickname } from './nickname';
@@ -123,9 +123,11 @@ export function validateNickname(nickname: unknown): { ok: true; value: string }
  * 저장본을 건드리지 않고 내보낼 때 한 번 더 걸러, 옛 닉네임이 아이들 화면에
  * 노출되지 않게 한다(계정 자체는 살아 있고 본인 화면에서는 원래대로 보인다).
  */
-export function maskNickname(nickname: string): string {
-  // 생성 닉네임만 공개한다 — 옛 자유 입력 이름(실명·욕설 위험)은 그 문자열에서 정해진 생성 이름으로(src/lib/moderation/gen-nick.ts)
-  return publicNick(nickname);
+export function maskNickname(nickname: string, userId: string): string {
+  // 생성 닉네임만 공개한다 — 옛 자유 입력 이름(실명·욕설 위험)은 «사용자 id» 로 정해진 생성 이름으로.
+  // 옛 이름 문자열로 만들면 «김철수» 같은 후보를 넣어 공개 별칭과 맞춰 볼 수 있다(8way codex) — id 는 공개되지 않는다.
+  // ensureGenNick 의 첫 후보(salt 0)와 같아서 로그인 전후 공개 이름이 같다(8way grok).
+  return isGenNick(nickname) ? nickname : genNickFrom(userId, 0);
 }
 
 /**
@@ -141,5 +143,6 @@ export async function ensureGenNick(env: Env, id: string, nickname: string): Pro
       if (r.meta?.changes) return { nickname: next, renamed: true };
     } catch { /* 같은 이름이 있으면(UNIQUE) 다음 후보 */ }
   }
-  return { nickname: publicNick(nickname), renamed: false };
+  // 8번 다 겹치면(극히 드묾) 저장은 못 했어도 공개 이름은 같은 id 규칙으로 — 옛 자유 입력 이름을 돌려주지 않는다
+  return { nickname: genNickFrom(id, 0), renamed: false };
 }

@@ -14,11 +14,12 @@ describe('생성 닉네임', () => {
     expect(validateNickname('타자왕').ok).toBe(false);
     expect(validateNickname('용감한펭귄42').ok).toBe(true);
   });
-  it('공개 표시 = 생성 형식(옛 이름은 정해진 생성 이름으로) · 같은 옛 이름 = 같은 표시', () => {
-    expect(maskNickname('홍길동')).toBe(publicNick('홍길동'));
-    expect(isGenNick(maskNickname('홍길동'))).toBe(true);
-    expect(maskNickname('홍길동')).toBe(maskNickname('홍길동'));
-    expect(maskNickname('용감한펭귄42')).toBe('용감한펭귄42');
+  it('공개 표시 = 생성 형식 · 옛 이름은 «사용자 id» 로 정한 이름(옛 이름 문자열로는 못 맞춰 본다) · 로그인 치환 첫 후보와 같다', () => {
+    expect(isGenNick(maskNickname('홍길동', 'uid-7'))).toBe(true);
+    expect(maskNickname('홍길동', 'uid-7')).toBe(genNickFrom('uid-7', 0));
+    expect(maskNickname('홍길동', 'uid-7')).not.toBe(publicNick('홍길동'));
+    expect(maskNickname('김철수', 'uid-7')).toBe(maskNickname('홍길동', 'uid-7'));
+    expect(maskNickname('용감한펭귄42', 'uid-7')).toBe('용감한펭귄42');
   });
   it('genNickFrom 은 결정론 · salt 로 다른 후보', () => {
     expect(genNickFrom('uid-1')).toBe(genNickFrom('uid-1'));

@@ -92,6 +92,9 @@ export function seedFromString(s: string): number {
 
 const ENEMY_COLORS = ['#FF6B6B', '#FECA57', '#FD79A8', '#00D2D3'];
 
+/** 60Hz 한 프레임(ms) — speed 는 이 단위의 이동량 */
+const FRAME_MS = 1000 / 60;
+
 export class DefenseCore {
   readonly opts: DefenseCoreOptions;
   enemies: DefenseEnemy[] = [];
@@ -104,6 +107,8 @@ export class DefenseCore {
   attempts = 0;
   freezeUntil = 0;
   over = false;
+  /** 직전 tick 시각 — 주사율 보정 */
+  private lastTick = -1;
   readonly mode: DefenseMode;
   /** 첫 tick 시각 — 60초 모드 남은 시간 */
   startedAt = -1;
@@ -142,6 +147,9 @@ export class DefenseCore {
     const ev: DefenseEvent[] = [];
     if (this.over) return ev;
     if (this.startedAt < 0) this.startedAt = time;
+    // 화면 주사율과 무관하게 — 이동량은 «60Hz 한 프레임» 단위(speed)에 실제 경과 시간을 곱한다(144Hz 화면에서 2.4배 빨리 떨어지던 것 · 8way codex)
+    const k = this.lastTick < 0 ? 1 : Math.min(3, (time - this.lastTick) / FRAME_MS);
+    this.lastTick = time;
     const rem = this.remaining(time);
     if (rem !== null && rem <= 0) { this.over = true; ev.push({ type: 'gameover' }); return ev; }
     const { W, H, isKorean, rng, pickWord } = this.opts;
@@ -197,7 +205,7 @@ export class DefenseCore {
     const alive: DefenseEnemy[] = [];
     for (const e of this.enemies) {
       if (!e.dying && !frozen) {
-        e.x += e.speed;
+        e.x += e.speed * k;
         if (e.x > W - CASTLE_HIT_X_OFFSET) {
           this.castleHp -= 1;
           ev.push({ type: 'miss', enemy: e });
@@ -218,8 +226,8 @@ export class DefenseCore {
     // 화살 이동 — 목표(죽어가는 중인 병사)에 닿으면 치워지고 그제야 타격 연출이 터진다
     const aliveArrows: DefenseArrow[] = [];
     for (const a of this.arrows) {
-      a.x += Math.cos(a.angle) * a.speed;
-      a.y += Math.sin(a.angle) * a.speed;
+      a.x += Math.cos(a.angle) * a.speed * k;
+      a.y += Math.sin(a.angle) * a.speed * k;
       if (a.x > W + 20 || a.x < -20 || a.y < -20 || a.y > H + 20) continue;
       const target = this.enemies.find((e) => e.id === a.targetId && e.dying);
       if (target) {
@@ -257,13 +265,13 @@ export class DefenseCore {
     const angle = Math.atan2(enemy.y - castleTop, enemy.x - castleX);
     this.arrows.push({ x: castleX - 30, y: castleTop, targetId: enemy.id, speed: 12, angle });
 
-    const points = raw.length * 10 * (enemy.special ? 2 : 1);
+    const points = text.length * 10 * (enemy.special ? 2 : 1);
     enemy.points = points;
     this.score += points;
 
     if (enemy.special && enemy.ability) ev.push(this.trigger(enemy.ability, time));
 
-    this.gold += 5 + Math.floor(raw.length / 2);
+    this.gold += 5 + Math.floor(text.length / 2);
     this.kills += 1;
     if (this.kills % WAVE_KILL_STEP === 0) {
       this.wave += 1;

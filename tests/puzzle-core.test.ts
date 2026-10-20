@@ -156,3 +156,15 @@ describe('끝말잇기 코어', () => {
     expect(core1.currentWord).toBe(core1b.currentWord);
   });
 });
+
+describe('끝말잇기 코어 — 8way 반영', () => {
+  it('영어는 대소문자만 바꿔 같은 단어를 다시 낼 수 없다', () => {
+    const pool = ['apple', 'egg', 'goat', 'tiger', 'rabbit', 'tomato', 'orange', 'eagle', 'elephant', 'tent'];
+    const core = new PuzzleCore({ isKorean: false, rng: seededRng(1), wordPool: pool, validWords: new Set(pool), mode: 'classic' });
+    core.tick(1000);
+    core.usedWords.add('egg');
+    (core as unknown as { currentWord: string }).currentWord = 'apple';
+    const ev = core.submit('EGG', 1000);
+    expect(ev[0]).toMatchObject({ type: 'invalid', reason: 'used' });
+  });
+});

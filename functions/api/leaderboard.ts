@@ -81,7 +81,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   // 사용자별 최고 기록 1건씩만 순위에 올린다.
   const sql = `
-    SELECT u.nickname AS nickname, u.avatar AS avatar,
+    SELECT u.id AS uid, u.nickname AS nickname, u.avatar AS avatar,
            MAX(${rankColumn}) AS best,
            s.accuracy AS accuracy, s.created_at AS created_at
       FROM scores s
@@ -93,13 +93,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   const { results } = await env.DB.prepare(sql)
     .bind(...binds)
-    .all<{ nickname: string; avatar: string; best: number; accuracy: number; created_at: number }>();
+    .all<{ uid: string; nickname: string; avatar: string; best: number; accuracy: number; created_at: number }>();
 
   const entries = (results ?? []).map((r, i) => ({
     rank: i + 1,
     // 금칙어 필터를 강화하기 전에 등록된 닉네임은 DB에 그대로 남아 있다.
     // 저장본을 고치지 않고, 내보낼 때 한 번 더 걸러 순위표에 노출되지 않게 한다.
-    nickname: maskNickname(r.nickname),
+    nickname: maskNickname(r.nickname, r.uid),
     avatar: r.avatar,
     value: Math.round(r.best),
     accuracy: Math.round(r.accuracy * 10) / 10,

@@ -43,7 +43,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   // 사용자별 최고 WPM 1건씩, 최근 활동 우선.
   const sql = `
-    SELECT u.nickname AS nickname,
+    SELECT u.id AS uid, u.nickname AS nickname,
            MAX(s.score) AS wpm,
            MAX(s.created_at) AS at
       FROM scores s
@@ -55,12 +55,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
   const { results } = await env.DB.prepare(sql)
     .bind(...binds)
-    .all<{ nickname: string; wpm: number; at: number }>();
+    .all<{ uid: string; nickname: string; wpm: number; at: number }>();
 
   const ghosts = (results ?? [])
     .filter((r) => r.nickname && r.wpm > 0)
     // 옛 닉네임도 아이들 화면에 그대로 뜨지 않게 내보낼 때 한 번 더 거른다.
-    .map((r) => ({ nickname: maskNickname(r.nickname), wpm: Math.round(r.wpm) }));
+    .map((r) => ({ nickname: maskNickname(r.nickname, r.uid), wpm: Math.round(r.wpm) }));
 
   const response = json(
     { ok: true, mode, ghosts, updatedAt: Date.now() },

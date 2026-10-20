@@ -112,6 +112,9 @@ export class PuzzleCore {
     this.turnRemainingMs = this.mode === 'survival' ? SURVIVAL_TURN_MS : TURN_START_MS;
   }
 
+  /** 쓴 단어 장부 열쇠 — 영어는 소문자(Apple·apple 을 같은 단어로 · 8way codex·gemini·grok) */
+  private key(word: string): string { return this.opts.isKorean ? word : word.toLowerCase(); }
+
   private firstChar(word: string): string {
     return this.opts.isKorean ? word[0] : word[0].toLowerCase();
   }
@@ -122,6 +125,8 @@ export class PuzzleCore {
   /** 이 끝글자로 이어갈 단어가 사전에 실제로 존재하는가(= 막다른 글자가 아닌가). */
   private answerable(ch: string): boolean {
     if (!ch) return false;
+    // 사전은 페이지가 나중에 같은 Set 에 채운다 — 스냅샷이 비어 있으면 그때 다시 만든다(8way grok)
+    if (this.dictFirstChars.size === 0 && this.opts.validWords.size > 0) this.dictFirstChars = new Set([...this.opts.validWords].map((w) => this.firstChar(w)));
     if (this.dictFirstChars.size === 0) return true; // 사전 로딩 전이면 막지 않음(기존 그대로)
     for (const s of allowedStarts(ch)) if (this.dictFirstChars.has(s)) return true;
     return false;
@@ -139,7 +144,7 @@ export class PuzzleCore {
   /** 상대가 막혔거나(보너스) 턴을 놓쳤을 때(survival) 새로 여는 라운드 시작 단어. 없으면 null(기존 그대로 — 억지로 만들지 않는다). */
   private nextStarter(exclude: Set<string>): string | null {
     const { wordPool, rng } = this.opts;
-    const candidates = wordPool.filter((w) => !exclude.has(w) && this.answerable(this.lastChar(w)));
+    const candidates = wordPool.filter((w) => !exclude.has(this.key(w)) && this.answerable(this.lastChar(w)));
     if (candidates.length === 0) return null;
     return candidates[Math.floor(rng() * candidates.length)];
   }
@@ -147,7 +152,7 @@ export class PuzzleCore {
   private findComputerWord(lastCh: string): string | null {
     const { wordPool, rng } = this.opts;
     const starts = allowedStarts(lastCh);
-    const candidates = wordPool.filter((w) => starts.has(this.firstChar(w)) && !this.usedWords.has(w));
+    const candidates = wordPool.filter((w) => starts.has(this.firstChar(w)) && !this.usedWords.has(this.key(w)));
     if (candidates.length === 0) return null;
     // 플레이어가 이어갈 수 있는 단어만 낸다(막다른 글자로 끝나는 단어는 내지 않음).
     const safe = candidates.filter((w) => this.answerable(this.lastChar(w)));
@@ -170,7 +175,7 @@ export class PuzzleCore {
       this.lastTick = time;
       const starter = this.pickStarter();
       this.currentWord = starter;
-      this.usedWords.add(starter);
+      this.usedWords.add(this.key(starter));
       this.chain.push({ word: starter, isPlayer: false });
       ev.push({ type: 'start', word: starter });
       return ev;
@@ -190,7 +195,7 @@ export class PuzzleCore {
         }
         const next = this.nextStarter(this.usedWords);
         if (next) {
-          this.usedWords.add(next);
+          this.usedWords.add(this.key(next));
           this.currentWord = next;
           this.chain.push({ word: next, isPlayer: false });
           this.turnRemainingMs = this.survivalTurnMs();
@@ -233,7 +238,7 @@ export class PuzzleCore {
       ev.push({ type: 'invalid', reason: 'bad-start' });
       return ev;
     }
-    if (this.usedWords.has(word)) {
+    if (this.usedWords.has(this.key(word))) {
       this.combo = 0;
       ev.push({ type: 'invalid', reason: 'used' });
       return ev;
@@ -259,7 +264,7 @@ export class PuzzleCore {
     }
 
     // 정답 — 점수 = 글자 수 × 10 × (1 + ⌊콤보/3⌋ × 0.5), 반올림(기존 그대로)
-    this.usedWords.add(word);
+    this.usedWords.add(this.key(word));
     const newCombo = this.combo + 1;
     const points = Math.round(word.length * 10 * (1 + Math.floor(newCombo / 3) * 0.5));
     this.chain.push({ word, isPlayer: true });
@@ -290,7 +295,7 @@ export class PuzzleCore {
       ev.push({ type: 'bonus', points: STUCK_BONUS });
       const next = this.nextStarter(this.usedWords);
       if (next) {
-        this.usedWords.add(next);
+        this.usedWords.add(this.key(next));
         this.currentWord = next;
         this.chain.push({ word: next, isPlayer: false });
         ev.push({ type: 'round', word: next });
@@ -298,7 +303,7 @@ export class PuzzleCore {
       return ev;
     }
 
-    this.usedWords.add(computerWord);
+    this.usedWords.add(this.key(computerWord));
     this.currentWord = computerWord;
     this.chain.push({ word: computerWord, isPlayer: false });
     ev.push({ type: 'hit', word: computerWord, points: 0, isPlayer: false });
@@ -307,7 +312,7 @@ export class PuzzleCore {
 
   /** 화면 표시용 — 현재 턴에 남은 시간(초, 올림). */
   turnSeconds(time: number): number {
-    if (this.startedAt < 0) return Math.ceil(TURN_START_MS / 1000);
+    if (this.startedAt < 0) return Math.ceil(this.turnRemainingMs / 1000);   // 목숨 3개 모드는 첫 턴부터 짧다
     const dt = Math.max(0, time - this.lastTick);
     return Math.max(0, Math.ceil((this.turnRemainingMs - dt) / 1000));
   }
