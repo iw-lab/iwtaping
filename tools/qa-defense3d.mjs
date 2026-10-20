@@ -62,6 +62,9 @@ async function typeFirst(page) {
 try {
   console.log(`═══ 킹덤 디펜스 3D 실측 ${BASE} ═══`);
   const page = await open();
+  await page.waitForSelector('[data-gb-mode]', { timeout: 8000 }).catch(() => {});
+  const modes = await page.$$eval('[data-gb-mode]', (els) => els.map((e) => e.dataset.gbMode));
+  check('R0 메뉴 모드 카드 4종(classic·time·survival·daily)', ['classic', 'time', 'survival', 'daily'].every((m) => modes.includes(m)), modes.join(','));
   await start(page);
   await page.waitForFunction(() => window.__defense.core.enemies.length >= 1, { timeout: 30000 }).catch(() => {});
   const render = await page.$eval('[data-render]', (e) => e.dataset.render);

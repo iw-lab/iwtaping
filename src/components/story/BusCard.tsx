@@ -66,7 +66,7 @@ export function BusCard() {
       </button>
       {album && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={() => setAlbum(false)}>
-          <div className="w-full max-w-md rounded-2xl p-4" style={{ background: 'var(--bg-card)' }} onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-2xl p-4" style={{ background: 'var(--bg-card)' }} onClick={(e) => e.stopPropagation()} data-story="album">
             <div className="font-bold mb-3">이야기 앨범</div>
             <div className="grid grid-cols-2 gap-2">
               {script.beats.map((bt) => {

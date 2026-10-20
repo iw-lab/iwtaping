@@ -87,6 +87,7 @@ async function typeNext(page) {
 try {
   console.log(`═══ 끝말잇기 3D 실측 ${BASE} ═══`);
   const page = await open();
+  await page.waitForSelector('[data-gb-mode]', { timeout: 8000 }).catch(() => {});
   const modes = await page.$$eval('[data-gb-mode]', (els) => els.map((e) => e.dataset.gbMode));
   check('R1 메뉴 모드 카드 4종(classic·time·survival·daily)', ['classic', 'time', 'survival', 'daily'].every((m) => modes.includes(m)), modes.join(','));
   await start(page);
