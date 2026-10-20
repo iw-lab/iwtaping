@@ -1,0 +1,6 @@
+[geminiweb] ⏳ 다른 세션이 사용 중(슬롯 1) — 기다린다 (0s) · pid=91376 cwd=/Users/sim-insu/Documents/dev/newyoutube/yt/yamamoto-1943 since=20:29:10 --file .spellcheck/script.txt
+⛔ GEMINIWEB_BUSY: 슬롯 1개가 30s 째 전부 사용 중
+rc=8
+  ↻ gemini 웹 레인 rc=8 → agy CLI 로 대체(같은 계열·다른 통)
+cli_rc=0
+  ↳ agy 아티팩트 본문 1개를 끌어왔다

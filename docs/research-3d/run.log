@@ -1,0 +1,6 @@
+  ↻ gpt 웹 레인 rc=5 → codex CLI 로 대체(같은 계열·다른 통)
+  ↻ gemini 웹 레인 rc=8 → agy CLI 로 대체(같은 계열·다른 통)
+✅ gpt 50087B → /Users/sim-insu/Documents/dev/iwtaping/docs/research-3d/gpt.md
+✅ gemini 30409B → /Users/sim-insu/Documents/dev/iwtaping/docs/research-3d/gemini.md
+✅ grok 9199B → /Users/sim-insu/Documents/dev/iwtaping/docs/research-3d/grok.md
+📁 /Users/sim-insu/Documents/dev/iwtaping/docs/research-3d — 레인끼리 갈리는 주장은 다수결 말고 원문(약관·라이선스·공식 문서)으로 확정할 것

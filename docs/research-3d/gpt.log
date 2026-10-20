@@ -1,0 +1,10 @@
+❌ 단발 호출 게이트 — 최근 30분 안에 gpt-web.py 단발 호출이 5회다.
+   단발은 호출마다 **브라우저 창과 대화를 새로 만든다**. 반복 작업이면 레이트리밋에 걸리고
+   사용자 화면에 창이 그 수만큼 뜬다(2026-08-28 실측 25창).
+   → 프롬프트들을 JSONL 로 모아 한 번만 불러라:
+     gpt-web.py --batch work.jsonl --chat-every 8 --gap 4 --retries 3 --min-chars 1200
+     각 줄 = {"name":..., "prompt":..., "out":"/경로/결과.txt"}
+   정말 사람이 손으로 묻는 중이면 30분 기다리거나 /Users/sim-insu/.claude/state/web-bridge-calls.jsonl 를 지워라.
+rc=5
+  ↻ gpt 웹 레인 rc=5 → codex CLI 로 대체(같은 계열·다른 통)
+cli_rc=0
