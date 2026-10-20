@@ -1388,12 +1388,14 @@ export function resolveLabels(
     step?: number;
     maxShift?: number;
     pad?: number;
+    /** 라벨끼리 겹침 벌점 배수(기본 1 — 몸통 가림 3보다 가볍다). 라벨이 겹치면 글자를 못 읽으니 3D 판처럼 몸통이 라벨 밑 3D 에 있는 화면은 크게 준다 */
+    labelWeight?: number;
   } = { canvasH: Infinity }
 ): void {
   // maxShift는 "라벨이 몸통에서 떨어질 수 있는 최대 거리"이자 곧 연결선의 최대 길이다.
   // 크게 잡으면 겹침은 줄지만 라벨이 자기 적과 반 화면 떨어져 풍선끈처럼 보인다(실측 230px).
   // 72 = 라벨 5개가 같은 자리에 겹쳐도 서로 완전히 비켜설 수 있는 최소값(±72 = 36px 간격 5칸).
-  const { canvasH, canvasW = Infinity, axis = 'y', step = 6, maxShift = 72, pad = 8 } = opts;
+  const { canvasH, canvasW = Infinity, axis = 'y', step = 6, maxShift = 72, pad = 8, labelWeight = 1 } = opts;
   // 몸통 상자에 여유를 준다. 적이 움직이면 최적 자리가 계속 바뀌는데 라벨은 부드럽게
   // 따라가므로(easeLabelShift) 늘 몇 프레임 뒤처진다 — 그 지연분을 여유로 흡수한다.
   const padded = sprites.map((s) => ({ ...s, w: s.w + pad * 2, h: s.h + pad * 2 }));
@@ -1416,7 +1418,7 @@ export function resolveLabels(
         // 몬스터를 가리는 쪽이 라벨끼리 겹치는 것보다 훨씬 나쁘다.
         let overlap = 0;
         for (const s of padded) overlap += overlapArea(probe, s) * (s.weight ?? 3);
-        for (const p of placed) overlap += overlapArea(probe, p);
+        for (const p of placed) overlap += overlapArea(probe, p) * labelWeight;
         // 겹침은 **면적 비율**로 환산한다(1.0 = 라벨이 통째로 가려짐).
         // 날것의 px²로 두면 살짝 스친 것만으로도 수백 점이 붙어 거리 벌점을 압도했고,
         // 라벨이 허용 최대치까지 도망가 연결선이 풍선끈처럼 길어졌다(실측: 좀비).

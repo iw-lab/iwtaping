@@ -96,17 +96,23 @@ try {
 
   // R3 라벨 크기·겹침 — 페이지가 매 프레임 남기는 실제 라벨 사각형으로 판정
   await sleep(1500);
-  const lab = await page.evaluate(() => {
-    const rs = window.__defenseLabels || []; let overlap = 0;
-    for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) {
-      const a = rs[i], b = rs[j];
-      const ix = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
-      const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
-      if (ix * iy > 0.15 * Math.min(a.w * a.h, b.w * b.h)) overlap++;
-    }
-    return { n: rs.length, overlap, minH: rs.length ? Math.min(...rs.map((r) => r.h)) : 0 };
+  // 3초 동안 20번 본다 — 비켜 서는 중(easeLabelShift) 한두 프레임 스침은 봐주고, 겹친 채 머무는 것만 잡는다(겹친 표본 ≤ 10%)
+  const lab = await page.evaluate(async () => {
+    const one = () => {
+      const rs = window.__defenseLabels || []; let overlap = 0;
+      for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) {
+        const a = rs[i], b = rs[j];
+        const ix = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
+        const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+        if (ix * iy > 0.15 * Math.min(a.w * a.h, b.w * b.h)) overlap++;
+      }
+      return { n: rs.length, overlap, minH: rs.length ? Math.min(...rs.map((r) => r.h)) : 99 };
+    };
+    let bad = 0, n = 0, minH = 99, maxN = 0;
+    for (let k = 0; k < 20; k++) { const r = one(); if (r.overlap) bad++; n++; minH = Math.min(minH, r.minH); maxN = Math.max(maxN, r.n); await new Promise((res) => setTimeout(res, 150)); }
+    return { n: maxN, overlap: bad / n > 0.1 ? bad : 0, bad, samples: n, minH };
   });
-  check('R3 동시 라벨 겹침 0', lab.overlap === 0, `${lab.n}개 · 겹침 ${lab.overlap} · 라벨 높이 최소 ${lab.minH}px`);
+  check('R3 라벨끼리 겹친 채 머무름 0(표본 20 중 겹침 ≤10%)', lab.overlap === 0, `최대 ${lab.n}개 · 겹친 표본 ${lab.bad}/${lab.samples} · 라벨 높이 최소 ${lab.minH}px`);
 
   // R4 나갔다 들어오기 — 메뉴로 돌아가 다시 시작해도 GPU 자원 수가 같아야 한다
   const mem1 = await page.evaluate(() => window.__defense.scene()?.info());
