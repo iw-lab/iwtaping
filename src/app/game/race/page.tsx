@@ -10,89 +10,117 @@ import { submitScore } from '@/lib/api/client';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { generateKoreanSentence, generateEnglishSentence } from '@/lib/content/word-generator';
 import { fetchRaceGhosts, fetchLeaderboard } from '@/lib/api/client';
-import { Ghost, Bot, Car } from 'lucide-react';
+import { Ghost, Bot, Car as CarIcon, Flag, Timer, CalendarDays } from 'lucide-react';
 import { useGameBgm } from '@/hooks/useGameBgm';
 import { schoolGate } from '@/lib/gb/school';
 import { useGameResult } from '@/hooks/useGameResult';
 import { soundManager } from '@/lib/sound/sound-manager';
 import { createGameJuice } from '@/lib/game/juice-table';
+import {
+  RaceCore, seededRng, seedFromString, buildOpponents,
+  type RaceCar, type RaceEvent, type RaceMode, type GhostSource,
+} from '@/lib/game/race/core';
+import type { RaceScene } from '@/lib/game3d/race-scene';
+import { ModePicker, useGameMode, todayKey, type ModeInfo } from '@/components/game/ModePicker';
+import { FullscreenButton } from '@/components/game/FullscreenButton';
 
-interface Car {
-  name: string;
-  progress: number;
-  color: string;
-  isPlayer: boolean;
-  wpm?: number;        // 고스트: 재생할 실제(또는 합성) WPM
-  finishMs?: number;   // 고스트: 현재 텍스트 완주까지 걸리는 시간
-  isGhost?: boolean;
-  isReal?: boolean;    // 실제 유저 기록이면 true, 합성 AI면 false
-  seed?: number;       // 사람다운 페이스 흔들림용 시드
-}
+const GAME_ID = 'race';
 
-// 실제 고스트가 부족할 때 채우는 합성 AI. 같은 WPM→완주시간 모델을 공유한다.
-// WPM = (문자수/5)/분 기준 — 한국어 초급~고급 대략치(폴백용).
-const AI_GHOSTS = [
-  { name: 'AI 초급', wpm: 22, color: '#48DBFB' },
-  { name: 'AI 중급', wpm: 38, color: '#FECA57' },
-  { name: 'AI 고급', wpm: 58, color: '#FF6B6B' },
+/** 레이스는 3종만 쓴다(기본틀 4종 중 survival 제외) — GDD-3D §2 */
+const RACE_MODES: ModeInfo[] = [
+  { id: 'classic', label: '기본', desc: '유령 셋과 한 판 승부', icon: Flag },
+  { id: 'time', label: '시간 제한', desc: '60초 안에 결승선까지', icon: Timer },
+  { id: 'daily', label: '오늘의 레이스', desc: '오늘은 모두 같은 상대', icon: CalendarDays },
 ];
 
-const GHOST_COLORS = ['#1DD1A1', '#54A0FF', '#FF9FF3', '#FECA57', '#FF6B6B'];
+/** 3D 판을 쓸 수 있나 — WebGL2 가 있고 «가벼운 화면»을 고르지 않았을 때(없으면 지금 2D 판 그대로) */
+function want3d(): boolean {
+  try {
+    if (localStorage.getItem('typingverse:lite') === '1') return false;
+    if (new URLSearchParams(location.search).get('lite') === '1') return false;
+    return !!document.createElement('canvas').getContext('webgl2');
+  } catch { return false; }
+}
 
-/** 고스트 WPM으로 현재 텍스트(len 글자)를 완주하는 데 걸리는 시간(ms).
- *  WPM=(글자/5)/분 이므로 완주ms = (len/5)/WPM*60000 = len*12000/WPM.
- *  → 플레이어의 실제 WPM이 고스트 WPM보다 크면 이긴다(정확히 공정). */
-const ghostFinishMs = (wpm: number, textLen: number): number =>
-  (textLen * 12000) / Math.max(1, wpm);
+/** 날짜 시드로 배열에서 n개를 결정적으로 뽑는다(오늘의 레이스 — 모두 같은 글) */
+function seededPick<T>(arr: T[], n: number, rng: () => number): T[] {
+  const idx = arr.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx.slice(0, Math.min(n, idx.length)).map((i) => arr[i]);
+}
 
 export default function RaceGamePage() {
   const { settings } = useSettingsStore();
   const [status, setStatus] = useState<'menu' | 'countdown' | 'racing' | 'finished'>('menu');
   useGameBgm('action', status === 'countdown' || status === 'racing');
+  const [mode, setMode] = useGameMode(GAME_ID);
+  const [is3d, setIs3d] = useState(false);
   const [text, setText] = useState('');
-  const [cars, setCars] = useState<Car[]>([]);
+  const [cars, setCars] = useState<RaceCar[]>([]);
   const [countdown, setCountdown] = useState(3);
-  const [playerProgress, setPlayerProgress] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const canvas3dRef = useRef<HTMLCanvasElement>(null);
+  const animFrameRef = useRef<number>(0);
   const areaRef = useRef<TypingAreaHandle>(null);
   // 이 판의 타이핑 결과. 완주든 패배든 실제 타건에서 계산된 값만 담는다.
   const resultRef = useRef<TypingResult | null>(null);
   // 고스트가 먼저 골인해 강제 종료된 판인가 — 순위 제출·진행률 100% 처리를 건너뛴다.
   const lostRef = useRef(false);
+  const coreRef = useRef<RaceCore | null>(null);
+  const sceneRef = useRef<RaceScene | null>(null);
   const juiceRef = useRef<ReturnType<typeof createGameJuice> | null>(null); // 반응(주스) — 추월·우승·역전당함
-  const prevRankRef = useRef(1);
+  // 문장의 단어 경계(누적 글자 수) — 단어를 하나 끝낼 때마다 3D 카메라 kick(단어 완성 뒤 0.2초만, GDD-3D §8 A)
+  const wordBoundsRef = useRef<number[]>([]);
+  const lastWordIdxRef = useRef(0);
   const isKorean = settings.language === 'ko';
+  const raceMode: RaceMode = mode === 'time' || mode === 'daily' ? mode : 'classic';
 
-  // 반응(주스) 인스턴스 — 레이스는 캔버스가 없어 DOM 레이어(pop·flash·banner)만 쓴다.
+  useEffect(() => { setIs3d(want3d()); }, []);
+
+  // 반응(주스) 인스턴스 — 레이스는 전용 캔버스가 없어 DOM 레이어(토스트·배너)만 쓴다.
+  // squash·knock·hitflash 콜백이 없으면 반응표가 el 대상 CSS로 대신 그리려다 대상이 없어 콘솔 에러를
+  // 남긴다(요소가 없는 '추월!'·'우승!' 토스트가 그 경우) — 3D 장면의 kick()이 그 역할을 대신하므로 비워 둔다.
   useEffect(() => {
-    juiceRef.current = createGameJuice({ soundManager, haptics: () => settings.sfx });
+    juiceRef.current = createGameJuice({
+      soundManager,
+      squash: () => {},
+      knock: () => {},
+      hitflash: () => {},
+      haptics: () => settings.sfx,
+    });
     return () => juiceRef.current?.destroy();
   }, [settings.sfx]);
 
-  // 플레이어가 상대를 추월할 때마다 "과하게" 반응 — 순위가 오를 때만 센다.
-  useEffect(() => {
-    if (status !== 'racing' || cars.length === 0) return;
-    const rank = [...cars].sort((a, b) => b.progress - a.progress).findIndex(c => c.isPlayer) + 1;
-    if (rank > 0 && rank < prevRankRef.current) {
-      juiceRef.current?.fire('hit', { text: isKorean ? '추월!' : 'Overtake!', color: '#1DD1A1' });
-    }
-    prevRankRef.current = rank || prevRankRef.current;
-  }, [cars, status, isKorean]);
-
-  const loadText = async (): Promise<string> => {
+  const loadText = async (raceMode: RaceMode): Promise<string> => {
     try {
+      if (raceMode === 'daily') {
+        // 오늘의 레이스 — 모두 같은 글(날짜 시드, 가공 문장 추가 없이 고정 문장만 써서 결정적으로 유지)
+        const rng = seededRng(seedFromString(`race-text:${todayKey()}:${settings.language}`));
+        if (settings.language === 'ko') {
+          const mod = await import('@/data/korean/sentences-short');
+          const t = seededPick(mod.koreanSentencesShort, 3, rng).map((s) => s.text).join(' ');
+          setText(t);
+          return t;
+        } else {
+          const mod = await import('@/data/english/sentences-short');
+          const t = seededPick(mod.englishSentencesShort, 3, rng).map((s) => s.text).join(' ');
+          setText(t);
+          return t;
+        }
+      }
       if (settings.language === 'ko') {
         const mod = await import('@/data/korean/sentences-short');
         const sentences = shuffleArray(mod.koreanSentencesShort).slice(0, 3);
-        let t = sentences.map(s => s.text).join(' ');
-        // Add procedurally generated sentences
+        let t = sentences.map((s) => s.text).join(' ');
         for (let i = 0; i < 2; i++) t += ' ' + generateKoreanSentence();
         setText(t);
         return t;
       } else {
         const mod = await import('@/data/english/sentences-short');
         const sentences = shuffleArray(mod.englishSentencesShort).slice(0, 3);
-        let t = sentences.map(s => s.text).join(' ');
+        let t = sentences.map((s) => s.text).join(' ');
         for (let i = 0; i < 2; i++) t += ' ' + generateEnglishSentence();
         setText(t);
         return t;
@@ -108,78 +136,41 @@ export default function RaceGamePage() {
 
   /** 전국 레이스 순위에서 실제 유저 기록을 가져와 고스트 후보로 만든다.
    *  공개 순위(닉네임+WPM)만 읽으므로 개인정보·서버 쓰기·실시간 연결이 없다.
-   *  네트워크 실패·무계정·기록 부족이면 빈 배열 → 합성 AI로 폴백. */
-  const loadGhosts = async (): Promise<{ name: string; wpm: number; isReal: boolean }[]> => {
+   *  밴드별 선정(빠름/중간/이길만함)은 코어(buildOpponents)가 맡는다 — 로직 분리. */
+  const loadGhosts = async (): Promise<GhostSource[]> => {
     try {
-      // 1순위: 고스트 전용 엔드포인트(신규·미검증 기록 포함 → 소규모 유저풀에서도 실제 사람과 대결).
       let raw: { name: string; wpm: number }[] = [];
       const g = await fetchRaceGhosts(settings.language);
       if (g && g.length > 0) {
-        raw = g.map(x => ({ name: x.nickname, wpm: Math.round(x.wpm) }));
+        raw = g.map((x) => ({ name: x.nickname, wpm: Math.round(x.wpm) }));
       } else {
-        // 2순위 폴백: 전국 순위(검증 완료 기록). value = WPM.
         const entries = await fetchLeaderboard('game:race', 'all');
-        if (entries) raw = entries.filter(e => e.value > 0 && e.nickname).map(e => ({ name: e.nickname, wpm: Math.round(e.value) }));
+        if (entries) raw = entries.filter((e) => e.value > 0 && e.nickname).map((e) => ({ name: e.nickname, wpm: Math.round(e.value) }));
       }
-      const valid = raw.filter(r => r.wpm > 0 && r.name);
-      if (valid.length === 0) return [];
-      // WPM 내림차순 → 난이도 스펙트럼이 되도록 구간별로 1명씩 뽑는다(빠름/중간/이길만함).
-      valid.sort((a, b) => b.wpm - a.wpm);
-      const n = valid.length;
-      const bands: [number, number][] = [
-        [0, Math.max(1, Math.ceil(n * 0.2))],
-        [Math.floor(n * 0.35), Math.max(1, Math.ceil(n * 0.6))],
-        [Math.floor(n * 0.6), n],
-      ];
-      const picked: { name: string; wpm: number; isReal: boolean }[] = [];
-      const usedNames = new Set<string>();
-      for (const [lo, hi] of bands) {
-        const range = valid.slice(lo, Math.max(lo + 1, hi)).filter(e => !usedNames.has(e.name));
-        if (range.length === 0) continue;
-        const pick = range[Math.floor(Math.random() * range.length)];
-        usedNames.add(pick.name);
-        picked.push({ name: pick.name, wpm: pick.wpm, isReal: true });
-      }
-      return picked;
+      return raw.filter((r) => r.wpm > 0 && r.name).map((r) => ({ name: r.name, wpm: r.wpm, isReal: true }));
     } catch {
       return [];
     }
   };
 
   const startRace = async () => {
-    const raceText = await loadText();
-    const L = raceText.length;
+    const raceText = await loadText(raceMode);
     const real = await loadGhosts();
-    // 상대 3명 구성: 실제 유저 고스트 우선, 부족분만 합성 AI로 채운다.
-    const opponents: { name: string; wpm: number; isReal: boolean; color: string }[] = [];
-    real.slice(0, 3).forEach((g, i) => opponents.push({ ...g, color: GHOST_COLORS[i % GHOST_COLORS.length] }));
-    for (const ai of AI_GHOSTS) {
-      if (opponents.length >= 3) break;
-      opponents.push({
-        name: isKorean ? ai.name : ai.name.replace('AI 초급', 'AI Easy').replace('AI 중급', 'AI Medium').replace('AI 고급', 'AI Hard'),
-        wpm: ai.wpm,
-        isReal: false,
-        color: ai.color,
-      });
-    }
-    setCars([
-      { name: isKorean ? '플레이어' : 'Player', progress: 0, color: '#6C5CE7', isPlayer: true },
-      ...opponents.map((o, i) => ({
-        name: o.name,
-        progress: 0,
-        color: o.color,
-        isPlayer: false,
-        wpm: o.wpm,
-        finishMs: ghostFinishMs(o.wpm, L),
-        isGhost: true,
-        isReal: o.isReal,
-        seed: i * 2.3 + 0.7,
-      })),
-    ]);
-    setPlayerProgress(0);
+    const rng = raceMode === 'daily' ? seededRng(seedFromString(`race:${todayKey()}:${settings.language}`)) : Math.random;
+    const opponents = buildOpponents(real, rng, isKorean);
+    const core = new RaceCore({ mode: raceMode, textLen: raceText.length, opponents, playerName: isKorean ? '플레이어' : 'Player' });
+    coreRef.current = core;
+    // 시험 손잡이(읽기 전용 관찰 — 판정·점수는 화면 입력으로만 바뀐다)
+    (window as unknown as { __race?: unknown }).__race = { core, scene: () => sceneRef.current };
+    setCars(core.cars.map((c) => ({ ...c })));
+    // 단어 경계 — 공백 기준 누적 글자 수(단어를 끝낼 때마다 kick)
+    const bounds: number[] = [];
+    let acc = 0;
+    for (const w of raceText.split(' ')) { acc += w.length; bounds.push(acc); acc += 1; }
+    wordBoundsRef.current = bounds;
+    lastWordIdxRef.current = 0;
     resultRef.current = null;
     lostRef.current = false;
-    prevRankRef.current = opponents.length + 1; // 출발은 전원 동률 — 꼴찌로 간주해 오탐 추월 방지
     setStatus('countdown');
     setCountdown(3);
   };
@@ -187,70 +178,99 @@ export default function RaceGamePage() {
   useEffect(() => {
     if (status !== 'countdown') return;
     if (countdown <= 0) { setStatus('racing'); return; }
-    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [status, countdown]);
 
+  /** 코어가 낸 사건 → 소리·반응·3D 장면. 점수 제출·최종 등수 확정은 handleComplete(TypingArea onComplete)가 맡는다
+   *  — 기존 판과 같은 소유권(여기서는 «고스트가 먼저 골인했다/플레이어가 먼저 100%» 상태 전환만 한다). */
+  const handleRaceEvents = (events: RaceEvent[]) => {
+    for (const e of events) {
+      if (e.type === 'overtake') {
+        juiceRef.current?.fire('hit', { text: isKorean ? '추월!' : 'Overtake!', color: '#1DD1A1' });
+      } else if (e.type === 'lost') {
+        // 패배해도 여기까지 친 만큼은 실제 결과로 확정한다 — handleComplete에서 lostRef를 보고 처리.
+        lostRef.current = true;
+        areaRef.current?.finish();
+        setStatus('finished');
+      } else if (e.type === 'win') {
+        setStatus('finished');
+      }
+    }
+  };
+
+  // 3D 장면 + 고스트 진행 — rAF 루프 하나로 코어를 매 프레임 돌린다(씨앗비와 같은 패턴).
   useEffect(() => {
     if (status !== 'racing') return;
-    const startT = performance.now();
-    intervalRef.current = setInterval(() => {
-      const elapsed = performance.now() - startT;
-      setCars(prev => {
-        const updated = prev.map(car => {
-          if (car.isPlayer || !car.finishMs) return car;
-          // 고스트 진행률 = 경과/완주시간. 완주시간은 실제 WPM으로 계산되므로
-          // 플레이어가 더 빠르면(=더 높은 WPM) 반드시 이긴다.
-          const base = Math.min(100, (elapsed / car.finishMs) * 100);
-          // 사람다운 페이스 흔들림 — 시작(0%)·끝(100%)에서 0이라 완주시간은 정확히 보존된다.
-          const env = Math.sin((Math.PI * base) / 100);
-          const noise = 3.5 * env * Math.sin(elapsed * 0.0016 + (car.seed ?? 0));
-          const progress = Math.max(0, Math.min(100, base + noise));
-          return { ...car, progress };
-        });
-        // 고스트가 먼저 100%면 레이스 종료(플레이어 패배)
-        const anyFinished = updated.some(c => !c.isPlayer && c.progress >= 100);
-        if (anyFinished) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setTimeout(() => {
-            // 패배해도 여기까지 친 만큼은 실제 결과로 확정한다 — 그래야 일일 퀘스트
-            // "게임 한 판"이 다른 5개 게임과 같은 기준으로 인정된다(정확도를 지어내지 않음).
-            lostRef.current = true;
-            areaRef.current?.finish();
-            setStatus('finished');
-          }, 0);
-        }
-        return updated;
-      });
-    }, 80);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [status]);
+    const core = coreRef.current;
+    if (!core) return;
+    let alive = true;
+
+    if (is3d && canvas3dRef.current) {
+      const c3 = canvas3dRef.current;
+      const W = c3.offsetWidth || 900;
+      const H = c3.offsetHeight || 460;
+      import('@/lib/game3d/race-scene').then((m) => {
+        if (!alive) return;
+        try { sceneRef.current = m.createRaceScene(c3, W, H); } catch { sceneRef.current = null; setIs3d(false); }
+      }).catch(() => setIs3d(false));
+    }
+
+    let lastHudSync = 0;
+    const loop = (time: number) => {
+      const events = core.tick(time);
+      if (events.length) handleRaceEvents(events);
+      sceneRef.current?.render(core.cars, time);
+      if (time - lastHudSync > 120) { lastHudSync = time; setCars(core.cars.map((c) => ({ ...c }))); }
+      if (core.over) { cancelAnimationFrame(animFrameRef.current); return; }
+      animFrameRef.current = requestAnimationFrame(loop);
+    };
+    animFrameRef.current = requestAnimationFrame(loop);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(animFrameRef.current);
+      sceneRef.current?.dispose();
+      sceneRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, is3d]);
 
   const handleProgress = (progress: number) => {
-    setPlayerProgress(progress);
-    setCars(prev => prev.map(car => car.isPlayer ? { ...car, progress } : car));
-    if (progress >= 100) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setStatus('finished');
+    const core = coreRef.current;
+    if (!core) return;
+    // 단어 하나를 끝낼 때마다(공백을 지날 때) 카메라를 짧게 kick — 입력 중엔 그 밖엔 움직이지 않는다.
+    const charIdx = Math.round((progress / 100) * text.length);
+    const bounds = wordBoundsRef.current;
+    while (lastWordIdxRef.current < bounds.length && charIdx >= bounds[lastWordIdxRef.current]) {
+      sceneRef.current?.kick(0);
+      lastWordIdxRef.current++;
     }
+    const events = core.setPlayerProgress(progress);
+    setCars(core.cars.map((c) => ({ ...c })));
+    if (events.length) handleRaceEvents(events);
   };
 
   const handleComplete = (result: TypingResult) => {
     resultRef.current = result;
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    const core = coreRef.current;
     if (lostRef.current) {
       // 강제 종료(패배) — 진행률을 100으로 올리지도, 미완주 기록을 순위에 올리지도 않는다.
       setStatus('finished');
       juiceRef.current?.fire('miss', { title: isKorean ? '패배...' : 'Defeated...', color: '#FF6B6B' });
       return;
     }
-    const finalRank = [...cars].sort((a, b) => b.progress - a.progress).findIndex(c => c.isPlayer) + 1;
-    setCars(prev => prev.map(car => car.isPlayer ? { ...car, progress: 100 } : car));
+    if (!core) { setStatus('finished'); return; }
+    // 🔴 onComplete는 currentIndex가 text.length로 갱신되기 전에(같은 핸들러 안에서 동기로) 불린다 —
+    // 아직 onProgress(100)가 코어에 닿지 않았을 수 있다. 등수는 그 전 값으로 정하고(기존 판과 같은 공정성),
+    // 화면 표시만 완주로 확정한다(기존 판의 setCars(... progress:100 ...)와 같은 역할).
+    const finalRank = core.playerRank();
+    core.cars[0].progress = 100;
+    setCars(core.cars.map((c) => ({ ...c })));
     setStatus('finished');
     juiceRef.current?.fire(finalRank === 1 ? 'special' : 'hit', finalRank === 1
       ? { title: isKorean ? '우승!' : 'You Win!', color: '#FECA57', vib: [25, 30, 25] }
       : { text: isKorean ? '완주!' : 'Finished!', color: '#1DD1A1' });
-    // 레이스는 실제 타이핑 — WPM으로 game:race 순위 제출(실제 타건 로그로 검증).
+    // 레이스는 실제 타이핑 — WPM으로 game:race 순위 제출(실제 타건 로그로 검증) — 기존 판과 같은 식.
     void submitScore({
       mode: 'game:race',
       language: settings.language,
@@ -266,19 +286,16 @@ export default function RaceGamePage() {
   };
 
   const rank = [...cars].sort((a, b) => b.progress - a.progress);
-  const playerRank = rank.findIndex(c => c.isPlayer) + 1;
+  const playerRank = rank.findIndex((c) => c.isPlayer) + 1;
 
   // 일일 퀘스트·도전과제 반영. 완주하지 못한 판(고스트가 먼저 골인)은 타이핑 결과가
   // 없으므로 기록하지 않는다 — 없는 정확도를 지어내지 않기 위해서다.
-  // level은 achievements의 race_win 규칙(level >= 1)이 읽는 값이라 우승 시에만 1을 준다.
   useGameResult(status === 'finished', () => {
     const r = resultRef.current;
-    if (!r || r.totalKeystrokes === 0) return null; // 한 글자도 안 친 판은 제외
+    if (!r || r.totalKeystrokes === 0) return null;
     return {
       gameType: 'race' as const,
       score: Math.round(r.wpm),
-      // lostRef를 함께 본다 — 고스트가 먼저 골인한 직후 플레이어가 100%에 도달하면
-      // 동률 정렬에서 플레이어가 앞서 1등으로 잡혀 우승 도전과제가 잘못 열린다.
       level: playerRank === 1 && !lostRef.current ? 1 : 0,
       maxCombo: 0,
       accuracy: r.accuracy,
@@ -290,6 +307,7 @@ export default function RaceGamePage() {
   if (status === 'menu') {
     return (
       <div className="max-w-[900px] mx-auto px-4 py-8 text-center">
+        <div className="flex justify-end mb-2"><FullscreenButton /></div>
         <div className="text-6xl mb-4">
           <svg viewBox="0 0 80 80" width="80" height="80" className="mx-auto">
             <rect width="80" height="80" rx="16" fill="#0A0A2E"/>
@@ -320,7 +338,11 @@ export default function RaceGamePage() {
         <p className="mb-6 text-xs" style={{ color: 'var(--text-muted)' }}>
           {isKorean ? '전국 순위 기록을 고스트로 불러옵니다 · 기록이 없으면 AI가 대신 뜁니다' : 'Ghosts are loaded from the national leaderboard · AI fills in when none are available'}
         </p>
+        <ModePicker game={GAME_ID} value={mode} onChange={setMode} modes={RACE_MODES} />
         <Button size="lg" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '레이스 시작' : 'Start Race'}</Button>
+        <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+          {is3d ? '3D 화면' : '가벼운 화면(2D)'}
+        </p>
       </div>
     );
   }
@@ -335,65 +357,90 @@ export default function RaceGamePage() {
 
   return (
     <div className="max-w-[900px] mx-auto px-4 py-4">
-      {/* Race track */}
-      <Card
-        className="p-4 mb-4"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(10,8,26,0.72), rgba(10,8,26,0.86)), url(/game/race/bg.webp)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          border: '1px solid rgba(108,92,231,0.35)',
-        }}
-      >
-        {cars.map((car, i) => (
-          <div key={i} className="mb-3">
-            <div className="flex items-center gap-2 text-sm mb-1">
-              {car.isGhost && (
-                <span className="text-xs">
-                  {car.isReal ? <Ghost className="w-3.5 h-3.5 inline" /> : <Bot className="w-3.5 h-3.5 inline" />}
-                </span>
-              )}
-              <span style={{ color: car.color, fontWeight: 'bold', fontFamily: "'JetBrains Mono'" }}>{car.name}</span>
-              {car.isReal && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,209,161,0.15)', color: '#1DD1A1', fontWeight: 'bold' }}>
-                  {isKorean ? '실제 기록' : 'REAL'}
-                </span>
-              )}
-              {car.isGhost && car.wpm != null && (
-                <span className="text-[11px]" style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono'" }}>{car.wpm} WPM</span>
-              )}
-              <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono'" }}>{Math.round(car.progress)}%</span>
-            </div>
-            <div className="h-8 rounded-lg overflow-hidden relative" style={{ background: 'var(--bg-tertiary)' }}>
-              {/* Track markings */}
-              <div className="absolute inset-0 flex items-center">
-                {[25, 50, 75].map(p => (
-                  <div key={p} className="absolute h-full w-px" style={{ left: `${p}%`, background: 'rgba(255,255,255,0.05)' }} />
-                ))}
+      {is3d ? (
+        <div
+          className="relative rounded-xl overflow-hidden border border-[var(--key-border)] mb-4"
+          style={{ background: 'var(--bg-card)', height: '460px' }}
+          data-render="3d"
+        >
+          <canvas ref={canvas3dRef} className="absolute inset-0 w-full h-full" style={{ display: 'block' }} aria-hidden />
+          <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
+            {rank.map((car, i) => (
+              <div key={car.id} className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md"
+                style={{ background: 'rgba(10,8,26,0.6)', minWidth: 150 }}>
+                <span style={{
+                  color: i === 0 ? '#FECA57' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'var(--text-muted)',
+                  fontFamily: "'JetBrains Mono'", width: 14,
+                }}>{i + 1}</span>
+                {car.isGhost && (car.isReal ? <Ghost className="w-3 h-3" aria-hidden /> : <Bot className="w-3 h-3" aria-hidden />)}
+                <span style={{ color: car.color, fontWeight: 'bold' }}>{car.name}</span>
+                <span className="ml-auto" style={{ fontFamily: "'JetBrains Mono'", color: 'var(--text-muted)' }}>{Math.round(car.progress)}%</span>
               </div>
-              <div className="h-full rounded-lg transition-all duration-200 flex items-center justify-end pr-2"
-                style={{ width: `${Math.max(5, car.progress)}%`, background: `linear-gradient(90deg, ${car.color}40, ${car.color})` }}>
-                <span className="text-sm">
-                  {car.isPlayer ? (
-                    <img
-                      src="/game/race/car.webp"
-                      width={34}
-                      height={20}
-                      alt=""
-                      className="race-car-drive"
-                      style={{ filter: 'drop-shadow(0 0 4px rgba(108,92,231,0.9))', objectFit: 'contain' }}
-                    />
-                  ) : (car.isReal ? <Ghost className="w-4 h-4 inline" /> : <Car className="w-4 h-4 inline" />)}
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </Card>
+          <div className="absolute top-2 right-2"><FullscreenButton /></div>
+        </div>
+      ) : (
+        <Card
+          className="p-4 mb-4"
+          data-render="2d"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(10,8,26,0.72), rgba(10,8,26,0.86)), url(/game/race/bg.webp)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            border: '1px solid rgba(108,92,231,0.35)',
+          }}
+        >
+          {cars.map((car, i) => (
+            <div key={i} className="mb-3">
+              <div className="flex items-center gap-2 text-sm mb-1">
+                {car.isGhost && (
+                  <span className="text-xs">
+                    {car.isReal ? <Ghost className="w-3.5 h-3.5 inline" /> : <Bot className="w-3.5 h-3.5 inline" />}
+                  </span>
+                )}
+                <span style={{ color: car.color, fontWeight: 'bold', fontFamily: "'JetBrains Mono'" }}>{car.name}</span>
+                {car.isReal && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,209,161,0.15)', color: '#1DD1A1', fontWeight: 'bold' }}>
+                    {isKorean ? '실제 기록' : 'REAL'}
+                  </span>
+                )}
+                {car.isGhost && car.wpm != null && (
+                  <span className="text-[11px]" style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono'" }}>{car.wpm} WPM</span>
+                )}
+                <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono'" }}>{Math.round(car.progress)}%</span>
+              </div>
+              <div className="h-8 rounded-lg overflow-hidden relative" style={{ background: 'var(--bg-tertiary)' }}>
+                <div className="absolute inset-0 flex items-center">
+                  {[25, 50, 75].map((p) => (
+                    <div key={p} className="absolute h-full w-px" style={{ left: `${p}%`, background: 'rgba(255,255,255,0.05)' }} />
+                  ))}
+                </div>
+                <div className="h-full rounded-lg transition-all duration-200 flex items-center justify-end pr-2"
+                  style={{ width: `${Math.max(5, car.progress)}%`, background: `linear-gradient(90deg, ${car.color}40, ${car.color})` }}>
+                  <span className="text-sm">
+                    {car.isPlayer ? (
+                      <img
+                        src="/game/race/car.webp"
+                        width={34}
+                        height={20}
+                        alt=""
+                        className="race-car-drive"
+                        style={{ filter: 'drop-shadow(0 0 4px rgba(108,92,231,0.9))', objectFit: 'contain' }}
+                      />
+                    ) : (car.isReal ? <Ghost className="w-4 h-4 inline" /> : <CarIcon className="w-4 h-4 inline" />)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
 
       {/* 🔴 mode="race" — 순위는 handleComplete 의 game:race 제출 하나로 끝낸다.
-          기본값(speed_test)이면 한 판이 speed 리더보드에도 같이 올라간다(2026-09-18 정리). */}
+          기본값(speed_test)이면 한 판이 speed 리더보드에도 같이 올라간다(2026-09-18 정리).
+          🔴 하단 고정 문장 DOM — 3D 판에서도 차 위에 라벨을 띄우지 않는다(GDD-3D §2, TypeRacer 관습). */}
       {status === 'racing' && text && (
         <TypingArea ref={areaRef} text={text} mode="race" onComplete={handleComplete} onProgress={handleProgress} />
       )}
@@ -427,6 +474,7 @@ export default function RaceGamePage() {
             ))}
           </div>
           <Button size="lg" className="mt-6" onClick={() => schoolGate(() => { void startRace(); })}>{isKorean ? '다시 도전' : 'Race Again'}</Button>
+          <div className="mt-3"><Button variant="ghost" onClick={() => setStatus('menu')}>{isKorean ? '모드 바꾸기' : 'Change mode'}</Button></div>
         </div>
       )}
     </div>
