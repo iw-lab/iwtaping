@@ -1,0 +1,144 @@
+배포본 실측 https://typingverse.pages.dev 2026-10-21 09:44:33
+== rain
+═══ 씨앗비 3D 실측 https://typingverse.pages.dev ═══
+  ✅ R1 메뉴 모드 카드 4종(classic·time·survival·daily) — classic,time,survival,daily
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R2a WebGL2 기기 = 3D 판 — 3d
+  ✅ R2b 3D 장면이 화면에 보인다(색 ≥ 12 · 풀밭 초록 칸 > 0) — {"colors":123,"green":524}
+  ✅ R2c 장면 드로 콜 ≤ 30 — calls 18 · 삼각형 8984
+  ✅ R3 화면 입력으로 맞히면 점수·심은 씨앗이 오른다 — 0 → 110 · 4개
+  ✅ R4 라벨끼리 겹친 채 머무름 0(표본 20 중 겹침 ≤10%) — 최대 4개 · 겹친 표본 0/20 · 라벨 높이 최소 29px
+  ✅ R5 다시 들어와도 geometry·texture 수 그대로 — {"geometries":12,"textures":1,"calls":18,"triangles":8984,"quality":1} → {"geometries":12,"textures":1,"calls":17,"triangles":8804,"quality":1}
+  ✅ R6 ?lite=1 = 2D 판 — 2d
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7 GPU 경로 · 1280×720 · CPU ×4 · P95 ≤ 17.5ms — ANGLE (Apple, ANGLE Metal Renderer: Appl · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.7 · 최대 16.8ms
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7w 소프트웨어 GL(경고선 33.3ms) — ANGLE (Google, Vulkan 1.3.0 (SwiftShader · 해상도 1 · 357프레임 · 중앙 16.7 · P95 16.8ms
+  ✅ R8 콘솔 에러 0 — 0건
+
+═══ 10 통과 / 0 실패 ═══
+console_errors=0
+== space
+═══ 우주 방어 3D 실측 https://typingverse.pages.dev ═══
+  ✅ R1 메뉴 모드 카드 4종(classic·time·survival·daily) — classic,time,survival,daily
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R2a WebGL2 기기 = 3D 판 — 3d
+  ✅ R2b 3D 장면이 화면에 보인다(색 ≥ 10) — {"colors":43}
+  ✅ R2c 장면 드로 콜 ≤ 30 — calls 4 · 삼각형 6004
+  ✅ R3 화면 입력으로 맞히면 점수·수리 수가 오른다 — 0 → 195 · 4개
+  ✅ R4 라벨끼리 겹친 채 머무름 0(표본 20 중 겹침 ≤10%) — 최대 6개 · 겹친 표본 0/20 · 라벨 높이 최소 28px
+  ✅ R5 다시 들어와도 geometry·texture 수 그대로 — {"geometries":5,"textures":0,"calls":8,"triangles":6804,"quality":1} → {"geometries":4,"textures":0,"calls":4,"triangles":6004,"quality":1}
+  ✅ R6 ?lite=1 = 2D 판 — 2d
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7 GPU 경로 · 1280×720 · CPU ×4 · P95 ≤ 17.5ms — ANGLE (Apple, ANGLE Metal Renderer: Appl · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.7 · 최대 16.8ms
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7w 소프트웨어 GL(경고선 33.3ms) — ANGLE (Google, Vulkan 1.3.0 (SwiftShader · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.8ms
+  ✅ R8 콘솔 에러 0 — 0건
+
+═══ 10 통과 / 0 실패 ═══
+console_errors=0
+== zombie
+═══ 슬라임 놀이터 3D 실측 https://typingverse.pages.dev ═══
+  ✅ R1 메뉴 모드 카드 4종(classic·time·survival·daily) — classic,time,survival,daily
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R2a WebGL2 기기 = 3D 판 — 3d
+  ✅ R2b 3D 장면이 화면에 보인다(색 ≥ 12 · 잔디 초록 칸 > 0) — {"colors":92,"green":1985}
+  ✅ R2c 장면 드로 콜 ≤ 30 — calls 7 · 삼각형 990
+  ✅ R3 화면 입력으로 맞히면 점수·정화 수가 오른다 — 0 → 144 · 4개
+  ✅ R4 라벨끼리 겹친 채 머무름 0(표본 20 중 겹침 ≤10%) — 최대 4개 · 겹친 표본 0/20 · 라벨 높이 최소 27px
+  ✅ R5 다시 들어와도 geometry·texture 수 그대로 — {"geometries":7,"textures":1,"calls":10,"triangles":1962,"quality":1} → {"geometries":7,"textures":1,"calls":8,"triangles":1314,"quality":1}
+  ✅ R6 ?lite=1 = 2D 판 — 2d
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7 GPU 경로 · 1280×720 · CPU ×4 · P95 ≤ 17.5ms — ANGLE (Apple, ANGLE Metal Renderer: Appl · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.8 · 최대 16.8ms
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7w 소프트웨어 GL(경고선 33.3ms) — ANGLE (Google, Vulkan 1.3.0 (SwiftShader · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.8ms
+  ✅ R8 콘솔 에러 0 — 0건
+
+═══ 10 통과 / 0 실패 ═══
+console_errors=0
+== defense
+═══ 킹덤 디펜스 3D 실측 https://typingverse.pages.dev ═══
+  ✅ R0 메뉴 모드 카드 4종(classic·time·survival·daily) — classic,time,survival,daily
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R1a WebGL2 기기 = 3D 판 — 3d
+  ✅ R1b 3D 장면이 화면에 보인다(색 ≥ 12 · 잔디 초록 칸 > 0) — {"colors":157,"green":919}
+  ✅ R1c 장면 드로 콜 ≤ 30 — calls 7 · 삼각형 1024
+  ✅ R2 화면 입력으로 맞히면 점수·격파 수가 오른다 — 0 → 140 · 4마리
+  ✅ R3 라벨끼리 겹친 채 머무름 0(표본 20 중 겹침 ≤10%) — 최대 5개 · 겹친 표본 0/20 · 라벨 높이 최소 27px
+  ✅ R4 다시 들어와도 geometry·texture 수 그대로 — {"geometries":8,"textures":1,"calls":7,"triangles":1280,"quality":1} → {"geometries":7,"textures":1,"calls":7,"triangles":1152,"quality":1}
+  ✅ R5 ?lite=1 = 2D 판 — 2d
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R6 GPU 경로 · 1280×720 · CPU ×4 · P95 ≤ 17.5ms — ANGLE (Apple, ANGLE Metal Renderer: Appl · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.8 · 최대 16.8ms
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R6w 소프트웨어 GL(경고선 33.3ms) — ANGLE (Google, Vulkan 1.3.0 (SwiftShader · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.7ms
+  ✅ R7 콘솔 에러 0 — 0건
+
+═══ 10 통과 / 0 실패 ═══
+console_errors=0
+== race
+═══ 타이핑 레이스 3D 실측 https://typingverse.pages.dev ═══
+  ✅ R1 메뉴 모드 카드 3종(classic·time·daily) — classic,time,daily
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R2a WebGL2 기기 = 3D 판 — 3d
+  ✅ R2b 3D 장면이 화면에 보인다(색 ≥ 12 · 잔디 초록 칸 > 0) — {"colors":257,"green":1012}
+  ✅ R2c 장면 드로 콜 ≤ 30 — calls 7 · 삼각형 2574
+  ✅ R3 사전조건 — 하단 고정 문장이 떠 있다 — 110자
+  ✅ R3 화면 입력으로 문장을 치면 내 차 진행률이 오른다 — 0.00 → 27.27
+  ✅ R4 하단 고정 문장 글자 ≥ 18px — 20px · 110자
+  ✅ R5 다시 들어와도 geometry·texture 수 그대로 — {"geometries":4,"textures":1,"calls":5,"triangles":2134,"quality":1} → {"geometries":4,"textures":1,"calls":7,"triangles":2574,"quality":1}
+  ✅ R6 ?lite=1 = 2D 판 — 2d
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7 GPU 경로 · 1280×720 · CPU ×4 · P95 ≤ 17.5ms — ANGLE (Apple, ANGLE Metal Renderer: Appl · 해상도 1 · 357프레임 · 중앙 16.7 · P95 16.7 · 최대 16.8ms
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7w 소프트웨어 GL(경고선 33.3ms) — ANGLE (Google, Vulkan 1.3.0 (SwiftShader · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.7ms
+  ✅ R8 콘솔 에러 0 — 0건
+
+═══ 11 통과 / 0 실패 ═══
+console_errors=0
+== puzzle
+═══ 끝말잇기 3D 실측 https://typingverse.pages.dev ═══
+  ✅ R1 메뉴 모드 카드 4종(classic·time·survival·daily) — classic,time,survival,daily
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R2a WebGL2 기기 = 3D 판 — 3d
+  ✅ R2b 3D 장면이 화면에 보인다(색 ≥ 12) — {"colors":66}
+  ✅ R2c 장면 드로 콜 ≤ 30 — calls 5 · 삼각형 1450
+  ✅ R3 화면 입력으로 맞히면 점수·이은 단어 수가 오른다 — 0 → 130 · 4개 (4번 입력)
+  ✅ R4 정면 카드 글자 ≥ 18px — {"min":15.3125,"max":28,"n":5}
+  ✅ R5 다시 들어와도 geometry·texture 수 그대로 — {"geometries":5,"textures":1,"calls":5,"triangles":1450,"quality":1} → {"geometries":5,"textures":1,"calls":5,"triangles":1450,"quality":1}
+  ✅ R6 ?lite=1 = 가벼운(DOM 전용) 판 — 2d
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7 GPU 경로 · 1280×720 · CPU ×4 · P95 ≤ 17.5ms — ANGLE (Apple, ANGLE Metal Renderer: Appl · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.7 · 최대 16.8ms
+  · 학교 정하기 창 → «목록에 없어요»로 시작(순위 기록 0)
+  ✅ R7w 소프트웨어 GL(경고선 33.3ms) — ANGLE (Google, Vulkan 1.3.0 (SwiftShader · 해상도 1 · 356프레임 · 중앙 16.7 · P95 16.7ms
+  ✅ R8 콘솔 에러 0 — 0건
+
+═══ 10 통과 / 0 실패 ═══
+console_errors=0
+== story
+═══ 타비의 버스 실측 https://typingverse.pages.dev ═══
+  ✅ S1 처음 기기 = 프롤로그 · 얼굴 · 건너뛰기 — {"open":true,"face":true,"skip":true}
+  ✅ S2 버스 카드 · 단계 이름 · 다음 목표 · 버스 그림 — 2층 버스까지 별 25개 · 정확도 80% 넘는 판마다 별 · 그림 240px
+  ✅ S3 정류장 별 3 → 홈에서 씨앗섬 이야기 — 
+    봄이씨앗섬 화분이 텅 비었어. 씨앗 이름이 지워졌거든.
+    
+  ✅ S4 앨범 = 본 이야기 2개만 열림 — {"open":2,"locked":11}
+  ✅ S5 게임 화면에서는 이야기 창이 안 뜬다
+  ✅ S6 콘솔 에러 0 — 0건
+
+═══ 6 통과 / 0 실패 ═══
+console_errors=0
+== baseline rain
+✅ 기본틀 PASS (https://typingverse.pages.dev/game/rain/)
+== baseline space
+✅ 기본틀 PASS (https://typingverse.pages.dev/game/space/)
+== baseline zombie
+✅ 기본틀 PASS (https://typingverse.pages.dev/game/zombie/)
+== baseline defense
+✅ 기본틀 PASS (https://typingverse.pages.dev/game/defense/)
+== baseline race
+⚪ 예외 B3: 타이핑 레이스만 모드 3종(classic·time·daily) — 레이스는 «목숨»이 맞지 않아 GDD-3D §2 에서 사용자 승인(2026-10-20 «니 계획대로»). 나머지 5종은 4종
+✅ 기본틀 PASS (https://typingverse.pages.dev/game/race/)
+== baseline puzzle
+✅ 기본틀 PASS (https://typingverse.pages.dev/game/puzzle/)
+LIVE-E2E PASS
+console_errors=0
