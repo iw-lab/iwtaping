@@ -49,7 +49,7 @@ let rankEl = null, rankData = null, rankBusy = false, rankAgain = false;
 /** 첫 화면 «맨 위» 요소를 넘긴다. 접지 않는다. 다시 그릴 땐 refreshSchoolRank() */
 export function mountSchoolRank(el) {
   rankEl = el; el.classList.add('gb-rank'); el.dataset.gb = 'school-rank';
-  mountSiteLink(el.closest('.gb-home') || el.parentElement);
+  ensureSiteLink(); requestAnimationFrame(ensureSiteLink);   // 화면에 붙이기 전에 불러도 다음 그림·다음 칠하기에서 붙는다(1.14.1 · 축구 실측)
   paintRank();
   onHub(() => paintRank());
   refreshSchoolRank();
@@ -66,6 +66,7 @@ export async function refreshSchoolRank() {
 }
 function paintRank() {
   if (!rankEl) return;
+  ensureSiteLink();
   const d = rankData;
   const useToday = d && d.today && d.today.length;
   const rows = d ? (useToday ? d.today : d.weekly || []) : [];
@@ -107,8 +108,17 @@ function paintRank() {
  * 자리를 정하고 싶으면 게임이 mountSiteLink(요소) 를 부른다(이미 있는 링크를 그리로 옮긴다). body 에는 붙이지 않는다(게임 중에도 보인다).
  * 게이트 = gate-baseline B12(보이는가·순위 아래인가·주소가 맞는가). */
 export const SITE_LINK = 'https://sunhaengssam.web.app';
-export function mountSiteLink(host) {
+let siteHost = null;   // 게임이 mountSiteLink(요소)로 자리를 정했으면 그 자리를 지킨다
+/** 순위 카드가 화면에 붙어 있는데 링크가 없으면 붙인다 — 첫 화면을 다시 그려 링크가 지워져도 다음 칠하기에서 돌아온다 */
+function ensureSiteLink() {
+  if (!rankEl || !rankEl.isConnected) return;
+  const a = document.querySelector('[data-gb="site-link"]');
+  if (a && a.isConnected) return;
+  mountSiteLink(siteHost && siteHost.isConnected ? siteHost : rankEl.closest('.gb-home') || rankEl.parentElement, true);
+}
+export function mountSiteLink(host, auto = false) {
   if (!host || host === document.body || host === document.documentElement) return null;
+  if (!auto) siteHost = host;
   let a = document.querySelector('[data-gb="site-link"]');
   if (!a) {
     a = document.createElement('a'); a.dataset.gb = 'site-link'; a.className = 'gb-site';

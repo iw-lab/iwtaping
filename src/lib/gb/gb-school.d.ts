@@ -10,4 +10,4 @@ export function gbGate(go: (ref: string | null) => void, o?: { kind?: string; ch
 export function gbFinish(ref: string | null, cleared: boolean): Promise<GbResult | null>;
 export function gbLeave(ref: string | null): Promise<GbResult | null>;
 export const SITE_LINK: string;
-export function mountSiteLink(host: HTMLElement | null): HTMLAnchorElement | null;
+export function mountSiteLink(host: HTMLElement | null, auto?: boolean): HTMLAnchorElement | null;

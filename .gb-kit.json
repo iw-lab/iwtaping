@@ -1,6 +1,6 @@
 {
   "kit": "school-hub",
-  "version": "1.14.0 (2026-10-22)",
+  "version": "1.14.1 (2026-10-22)",
   "id": "typingverse",
   "host": "pages",
   "client": "src/lib/gb",
