@@ -78,7 +78,7 @@ export default function Home() {
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-6">
       {/* 학교 순위 — 첫 화면 맨 위(기본틀) */}
-      <SchoolRankCard />
+      <SchoolRankCard siteLinkAt="gbSiteLink" />
       <BusCard />
       {/* Hero Section with Mascot */}
       <section className="relative text-center py-12 md:py-16 overflow-hidden">
@@ -290,6 +290,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+      {/* 첫 화면 맨 아래 선행쌤 링크(키트 mountSiteLink 가 여기에 단다) */}
+      <div id="gbSiteLink" className="max-w-[440px] mx-auto mt-8" />
     </div>
   );
 }
