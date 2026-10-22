@@ -9,6 +9,7 @@ const P = {
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4"/>',
   heart: '<path d="M12 20.5s-7.5-4.6-9.3-9.2A4.8 4.8 0 0 1 12 6.6a4.8 4.8 0 0 1 9.3 4.7C19.5 15.9 12 20.5 12 20.5z" fill="currentColor"/>',
+  out: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
   sparkle: '<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>',
 };
 /** gbIcon('trophy') → 인라인 SVG 문자열. cls 로 크기·색을 CSS 에서 맞춘다(.gb-ic 기본 1.1em) */

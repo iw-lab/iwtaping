@@ -49,6 +49,7 @@ let rankEl = null, rankData = null, rankBusy = false, rankAgain = false;
 /** 첫 화면 «맨 위» 요소를 넘긴다. 접지 않는다. 다시 그릴 땐 refreshSchoolRank() */
 export function mountSchoolRank(el) {
   rankEl = el; el.classList.add('gb-rank'); el.dataset.gb = 'school-rank';
+  mountSiteLink(el.closest('.gb-home') || el.parentElement);
   paintRank();
   onHub(() => paintRank());
   refreshSchoolRank();
@@ -89,7 +90,7 @@ function paintRank() {
     ? `<button class="gb-link" data-gb-act="school">${gbIcon('school')} 우리 학교 정하기</button>`
     : mine ? `<span class="gb-mine">${esc(shortSchool(hubState.school.name))} <b>${mine.rank}위</b>${mine.gap ? ` · 위 학교까지 ${mine.gap}점` : ' · 1등!'}</span>`
       : `<span class="gb-mine">${esc(shortSchool(hubState.school.name))} — 첫 점수를 올려요!</span>`;
-  rankEl.dataset.gbV = '1.4'; rankEl.dataset.gbN = String(rows.length);   // 게이트 B11 이 «통계 줄·더보기»를 판정할 표지
+  rankEl.dataset.gbV = '1.5'; rankEl.dataset.gbN = String(rows.length);   // 게이트 B11 이 «통계 줄·더보기»를 판정할 표지
   rankEl.innerHTML = `
     <div class="gb-rank-head"><b>${gbIcon('trophy')} 학교 순위</b><small>${period}</small>${free() ? '' : `<span class="gb-tix" title="이용권">${gbIcon('ticket')} ${hubState.online === false ? '–' : hubState.tix}</span>`}</div>
     ${stats}
@@ -99,6 +100,23 @@ function paintRank() {
   rankEl.querySelector('[data-gb-act="school"]')?.addEventListener('click', () => openSchool(() => hide())   /* 순위는 저장 직후 한 번 이미 다시 받는다 — 여기서 또 부르면 /schools 두 번(1.12.0) */);
   rankEl.querySelector('[data-gb-act="quiz"]')?.addEventListener('click', () => openQuiz(null));
   rankEl.querySelector('[data-gb-act="more"]')?.addEventListener('click', () => openRankAll(useToday ? 'd' : 'w'));
+}
+
+/* ── 첫 화면 맨 아래 선행쌤 링크(1.14.0 · 2026-10-22 사용자 «모든게임 대시보드 첫화면 아래에 선행쌤 사이트 링크 걸자») ──
+ * 순위 카드를 다는 첫 화면 상자(.gb-home, 없으면 순위 카드의 부모) 끝에 저절로 붙는다 — 게임마다 따로 안 고쳐도 된다.
+ * 자리를 정하고 싶으면 게임이 mountSiteLink(요소) 를 부른다(이미 있는 링크를 그리로 옮긴다). body 에는 붙이지 않는다(게임 중에도 보인다).
+ * 게이트 = gate-baseline B12(보이는가·순위 아래인가·주소가 맞는가). */
+export const SITE_LINK = 'https://sunhaengssam.web.app';
+export function mountSiteLink(host) {
+  if (!host || host === document.body || host === document.documentElement) return null;
+  let a = document.querySelector('[data-gb="site-link"]');
+  if (!a) {
+    a = document.createElement('a'); a.dataset.gb = 'site-link'; a.className = 'gb-site';
+    a.href = SITE_LINK; a.target = '_blank'; a.rel = 'noopener';
+    a.innerHTML = `${gbIcon('school')}<span><b>선행쌤</b> 선생님이 만든 다른 수업 놀이 보기</span>${gbIcon('out')}`;
+  }
+  host.appendChild(a);
+  return a;
 }
 
 /* ── 전체 순위(더보기) ───────────────────────────────────── */
@@ -274,12 +292,25 @@ async function startPack() {
  * ref = 이번 판 영수증(허브가 죽었으면 null). 판이 끝나면 gbFinish(ref, cleared), 중간에 나가면 gbLeave(ref).
  */
 let gating = false;
-export async function gbGate(go, { kind = 'play' } = {}) {
+export async function gbGate(go, { kind = 'play', chain = false } = {}) {
   autoEnterFullscreen();   // 🔴 맨 첫 줄 — await 전(제스처 안)이어야 브라우저가 받아 준다
   // 🔴 시작 단추 두 번 누름(아이들은 자주 그런다) = 이용권 2장·게임 두 번 시작 — 관문 하나가 도는 동안 다음 것은 버린다
   if (gating) return;
   gating = true;
-  try { await gateOnce(go, kind); } finally { gating = false; }
+  try { await (chain ? chainOnce(go, kind) : gateOnce(go, kind)); } finally { gating = false; }
+}
+/**
+ * 🔗 이어 하기(1.13 · 2026-10-22 보카웜 사용자 «게임할 때는 문제 빼라» — 결과 화면 «다음 단계·다시 도전»에서 문제 창이 떠
+ * 게임 도중처럼 느껴졌다). 결과 화면에서 바로 다음 판으로 갈 땐 **문제 창을 절대 띄우지 않는다**:
+ * 이용권이 있으면 조용히 1장 쓰고(학교 점수 그대로), 없거나 허브가 안 닿으면 점수 없이 바로 시작한다.
+ * 첫 화면의 시작 단추는 그대로 gbGate(go) — 문제는 판 «밖»에서만 푼다.
+ */
+async function chainOnce(go, kind) {
+  if (hubState.online === false || !hubState.school || hubState.tix <= 0) { go(null); return; }
+  const ref = newRef(kind);
+  const r = await spendTicket(ref, kind);
+  if (r.ok || r.why === 'offline') { liveRef = { ref, at: Date.now() }; go(ref); return; }
+  go(null);
 }
 async function gateOnce(go, kind) {
   // 모름이거나, «안 닿음» 판정이 1분 넘게 묵었으면 다시 본다 — 한 번 순단이 세션 끝까지 학교 점수를 끊지 않게(교차검증 grok)

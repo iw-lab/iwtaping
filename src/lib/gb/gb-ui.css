@@ -162,3 +162,11 @@
 .gb-tab.on { background: var(--gb-accent); color: var(--gb-accent-ink); border-color: transparent; }
 .gb-rank-scroll { max-height: min(60vh, 520px); overflow-y: auto; padding: 0 4px; }
 .gb-rank-scroll li { min-height: 30px; }
+
+/* 첫 화면 맨 아래 선행쌤 링크(1.14.0) — 누르는 곳 ≥44px · 글자 ≥12px */
+.gb-site { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; margin: 14px auto 4px; padding: 8px 16px;
+  border: 1px solid var(--gb-line); border-radius: 999px; background: var(--gb-panel); color: var(--gb-dim); font: 500 13px var(--gb-font);
+  text-decoration: none; width: fit-content; max-width: 100%; box-sizing: border-box; flex-shrink: 0; }
+.gb-site b { color: var(--gb-accent); font-weight: 800; margin-right: 4px; }
+.gb-site .gb-ic { width: 1.05em; height: 1.05em; flex-shrink: 0; }
+.gb-site:hover, .gb-site:focus-visible { color: var(--gb-text); border-color: var(--gb-accent); }
