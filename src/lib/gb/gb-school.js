@@ -107,7 +107,7 @@ function paintRank() {
  * 순위 카드를 다는 첫 화면 상자(.gb-home, 없으면 순위 카드의 부모) 끝에 저절로 붙는다 — 게임마다 따로 안 고쳐도 된다.
  * 자리를 정하고 싶으면 게임이 mountSiteLink(요소) 를 부른다(이미 있는 링크를 그리로 옮긴다). body 에는 붙이지 않는다(게임 중에도 보인다).
  * 게이트 = gate-baseline B12(보이는가·순위 아래인가·주소가 맞는가). */
-export const SITE_LINK = 'https://sunhaengssam.web.app';
+export const SITE_LINK = 'https://ssamzip.com';   // 1.14.2 — 선행쌤 대표 주소(옛 sunhaengssam.web.app 은 이리 넘긴다)
 let siteHost = null;   // 게임이 mountSiteLink(요소)로 자리를 정했으면 그 자리를 지킨다
 /** 순위 카드가 화면에 붙어 있는데 링크가 없으면 붙인다 — 첫 화면을 다시 그려 링크가 지워져도 다음 칠하기에서 돌아온다 */
 function ensureSiteLink() {
