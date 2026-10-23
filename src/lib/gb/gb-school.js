@@ -103,30 +103,37 @@ function paintRank() {
   rankEl.querySelector('[data-gb-act="more"]')?.addEventListener('click', () => openRankAll(useToday ? 'd' : 'w'));
 }
 
-/* ── 첫 화면 맨 아래 선행쌤 링크(1.14.0 · 2026-10-22 사용자 «모든게임 대시보드 첫화면 아래에 선행쌤 사이트 링크 걸자») ──
- * 순위 카드를 다는 첫 화면 상자(.gb-home, 없으면 순위 카드의 부모) 끝에 저절로 붙는다 — 게임마다 따로 안 고쳐도 된다.
- * 자리를 정하고 싶으면 게임이 mountSiteLink(요소) 를 부른다(이미 있는 링크를 그리로 옮긴다). body 에는 붙이지 않는다(게임 중에도 보인다).
- * 게이트 = gate-baseline B12(보이는가·순위 아래인가·주소가 맞는가). */
+/* ── 첫 화면 선행쌤 배너(1.14.0 맨 아래 → 1.15.0 순위 카드 바로 밑·화려하게) ──
+ * 2026-10-22 «모든게임 대시보드 첫화면 아래에 선행쌤 사이트 링크 걸자» → 2026-10-23 «첫화면에 링크 위쪽에 잘보이게 화려하게 눈길끌게 · 모든 앱»
+ * (자리 = 사용자 선택 «순위 카드 바로 아래» — 학교 순위는 맨 위 그대로).
+ * 순위 카드 «바로 다음 형제»로 저절로 붙는다 — 게임마다 따로 안 고쳐도 된다. 첫 화면을 다시 그려 지워져도 다음 칠하기에서 돌아온다.
+ * mountSiteLink(요소) 는 순위 카드가 없는 화면에서만 자리로 쓴다(1.15.0 — 모든 앱이 같은 자리에 둔다).
+ * body 에는 붙이지 않는다(게임 중에도 보인다). 게이트 = gate-baseline B12 · site-link-check(순위 바로 밑·첫 화면 안·움직이는 배너). */
 export const SITE_LINK = 'https://ssamzip.com';   // 1.14.2 — 선행쌤 대표 주소(옛 sunhaengssam.web.app 은 이리 넘긴다)
-let siteHost = null;   // 게임이 mountSiteLink(요소)로 자리를 정했으면 그 자리를 지킨다
+let siteHost = null;   // 순위 카드가 없는 화면에서 게임이 mountSiteLink(요소)로 정한 자리
 /** 순위 카드가 화면에 붙어 있는데 링크가 없으면 붙인다 — 첫 화면을 다시 그려 링크가 지워져도 다음 칠하기에서 돌아온다 */
 function ensureSiteLink() {
   if (!rankEl || !rankEl.isConnected) return;
   const a = document.querySelector('[data-gb="site-link"]');
-  if (a && a.isConnected) return;
-  mountSiteLink(siteHost && siteHost.isConnected ? siteHost : rankEl.closest('.gb-home') || rankEl.parentElement, true);
+  if (a && a.isConnected && a.previousElementSibling === rankEl) return;
+  const host = rankEl.parentElement;
+  if (!host || host === document.body || host === document.documentElement) return;
+  rankEl.after(siteLinkEl());
 }
-export function mountSiteLink(host, auto = false) {
-  if (!host || host === document.body || host === document.documentElement) return null;
-  if (!auto) siteHost = host;
+function siteLinkEl() {
   let a = document.querySelector('[data-gb="site-link"]');
   if (!a) {
     a = document.createElement('a'); a.dataset.gb = 'site-link'; a.className = 'gb-site';
     a.href = SITE_LINK; a.target = '_blank'; a.rel = 'noopener';
-    a.innerHTML = `${gbIcon('school')}<span><b>선행쌤</b> 선생님이 만든 다른 수업 놀이 보기</span>${gbIcon('out')}`;
+    a.innerHTML = `<span class="gb-site-ic">${gbIcon('sparkle')}</span><span class="gb-site-tx"><b>선행쌤</b><small>선생님이 만든 수업 놀이 더 보기</small></span><span class="gb-site-go">가 보기${gbIcon('out')}</span>`;
   }
-  host.appendChild(a);
   return a;
+}
+export function mountSiteLink(host) {
+  if (!host || host === document.body || host === document.documentElement) return null;
+  siteHost = host;
+  if (rankEl && rankEl.isConnected) { ensureSiteLink(); return document.querySelector('[data-gb="site-link"]'); }   // 순위 카드가 있으면 그 바로 밑이 자리다
+  const a = siteLinkEl(); host.appendChild(a); return a;
 }
 
 /* ── 전체 순위(더보기) ───────────────────────────────────── */
