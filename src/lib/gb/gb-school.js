@@ -109,7 +109,9 @@ function paintRank() {
  * 순위 카드 «바로 다음 형제»로 저절로 붙는다 — 게임마다 따로 안 고쳐도 된다. 첫 화면을 다시 그려 지워져도 다음 칠하기에서 돌아온다.
  * mountSiteLink(요소) 는 순위 카드가 없는 화면에서만 자리로 쓴다(1.15.0 — 모든 앱이 같은 자리에 둔다).
  * body 에는 붙이지 않는다(게임 중에도 보인다). 게이트 = gate-baseline B12 · site-link-check(순위 바로 밑·첫 화면 안·움직이는 배너). */
-export const SITE_LINK = 'https://ssamzip.com';   // 1.14.2 — 선행쌤 대표 주소(옛 sunhaengssam.web.app 은 이리 넘긴다)
+// 1.15.1 — 학교 망이 새 도메인 ssamzip.com 을 막아(2026-10-26) 배너를 눌러도 빈 화면 → «두 문» 주소: sunhaengssam.web.app 은
+//   ssamzip.com 이 그 망에서 열리면 그리로 넘기고, 막혔으면 그대로 보여 준다(simteacher src/lib/oldHostRedirect.ts). 🔒 tests/site-link.test.mjs
+export const SITE_LINK = 'https://sunhaengssam.web.app';
 let siteHost = null;   // 순위 카드가 없는 화면에서 게임이 mountSiteLink(요소)로 정한 자리
 /** 순위 카드가 화면에 붙어 있는데 링크가 없으면 붙인다 — 첫 화면을 다시 그려 링크가 지워져도 다음 칠하기에서 돌아온다 */
 function ensureSiteLink() {
