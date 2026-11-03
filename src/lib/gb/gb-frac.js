@@ -11,8 +11,9 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const MIXED = /(?<![\w./])(\d{1,4})(?:[과와] | )(\d{1,4})\/(\d{1,4})(?![\w/])(?!\s*(?:중|사이))/g;
 // 「과/와」는 읽는 소리의 받침으로 고른다(일·삼·육·칠·팔·영·십·백·천 = 과 / 이·사·오·구 = 와).
 const josa = (w) => (/0$/.test(w) || /[013678]$/.test(w) ? '과' : '와');
-const FRAC = /(?<![\w./])(\d{1,4})\/(\d{1,4})(?![\w/])/g;
-const f = (n, d) => `<span class="frac" role="img" aria-label="${d}분의 ${n}"><span class="frac-n">${n}</span><span class="frac-d">${d}</span></span>`;
+const FRAC = /(?<![\w./])(\d{1,4}|□)\/(\d{1,4}|□)(?![\w/])/g;   // □ = 빈칸 분수(«5/9 = □/45» — 2026-11-03 셈왕국 «분수 표시 / 말고 제대로»)
+const say = (x) => (x === '□' ? '빈칸' : x);
+const f = (n, d) => `<span class="frac" role="img" aria-label="${say(d)}분의 ${say(n)}"><span class="frac-n">${n}</span><span class="frac-d">${d}</span></span>`;
 
 export function fracHTML(text) {
   return esc(text).replace(MIXED, (_, w, n, d) => `<span class="frac-mixed">${w}${f(n, d)}</span>`).replace(FRAC, (_, n, d) => f(n, d));
