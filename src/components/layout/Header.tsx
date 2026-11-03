@@ -15,7 +15,7 @@ const navItems = [
   { href: '/test', label: '테스트', icon: 'timer' },
   { href: '/game', label: '게임', icon: 'gamepad' },
   { href: '/challenge', label: '챌린지', icon: 'trophy' },
-  { href: '/ranking', label: '리그', icon: 'medal' },
+  { href: '/ranking', label: '내 기록', icon: 'medal' },
   { href: '/shop', label: '상점', icon: 'shopping-bag' },
   { href: '/stats', label: '통계', icon: 'bar-chart' },
   { href: '/settings', label: '설정', icon: 'settings' },

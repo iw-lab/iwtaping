@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { LevelUpOverlay } from './LevelUpOverlay';
 import { CelebrationOverlay } from './CelebrationOverlay';
 import { AchievementToast } from './AchievementToast';
-import { AccountOnboarding } from '@/components/account/AccountOnboarding';
 import { ShopApplier } from '@/components/shop/ShopApplier';
 import { AudioSettingsSync } from './AudioSettingsSync';
 import { CrossTabSync } from './CrossTabSync';
@@ -31,7 +30,6 @@ export function GlobalOverlays() {
       <LevelUpOverlay />
       <CelebrationOverlay />
       <AchievementToast />
-      <AccountOnboarding />
       <ShopApplier />
       <AudioSettingsSync />
       <CrossTabSync />
