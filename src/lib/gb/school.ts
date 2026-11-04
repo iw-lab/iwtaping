@@ -4,7 +4,7 @@
 // 배포 호스트에선 허브 워커 직결(Pages 함수 공용 한도와 무관) · 로컬은 키트가 중계(/api/hub)를 쓴다.
 // 🔴 키트 모듈은 불러오는 순간 document 를 만진다 — Next 서버 미리 렌더링(SSG)에서 죽으므로 «브라우저에서만» 동적으로 불러온다.
 
-export const HUB_DIRECT = 'https://typingverse-hub.simssijjang-a04.workers.dev';
+export const HUB_DIRECT = 'https://typingverse-hub.simssijjang-korea.workers.dev';
 /** 학교 점수가 붙는 정확도(%) */
 export const SCHOOL_ACCURACY = 90;
 type Kit = typeof import('./gb-school.js');
