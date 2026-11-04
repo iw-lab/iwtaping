@@ -6,8 +6,10 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/ui/Button';
 import { Mascot } from '@/components/mascot/Mascot';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { isGenNick, genNickChoices } from '@/lib/moderation/gen-nick';
+import { isGenNick, NICK_ADJ, NICK_NOUN } from '@/lib/moderation/gen-nick';
 import { RefreshCw } from 'lucide-react';
+
+const rand2 = () => 10 + Math.floor(Math.random() * 90);
 
 const DISMISS_KEY = 'typingverse-onboard-seen';
 
@@ -29,10 +31,12 @@ export function AccountOnboarding() {
   const createAccount = useAccountStore((s) => s.createAccount);
 
   const [open, setOpen] = useState(false);
-  const [nickname, setNickname] = useState('');
-  // 이름은 만들어진 후보에서 고른다(자유 입력 0 — 실명·욕설이 순위표에 오르지 않게)
-  const [choices, setChoices] = useState<string[]>([]);
-  useEffect(() => { if (open && !choices.length) setChoices(genNickChoices(3)); }, [open, choices.length]);
+  // 이름은 꾸밈말 하나 + 동물·사물 하나를 직접 고른다(자유 입력 0 — 실명·욕설이 순위표에 오르지 않게).
+  // 두 자리 번호는 서버 형식(isGenNick)이 요구해서 자동으로 붙이고 화면에 보여만 준다(사용자가 고르지 않는다).
+  const [adj, setAdj] = useState<string | null>(null);
+  const [noun, setNoun] = useState<string | null>(null);
+  const [num, setNum] = useState<number>(() => rand2());
+  const nickname = adj && noun ? `${adj}${noun}${num}` : '';
   const [grade, setGrade] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,7 +61,7 @@ export function AccountOnboarding() {
   const submit = async () => {
     const name = nickname;
     if (!isGenNick(name)) {
-      setError('아래 이름 중 하나를 골라 주세요.');
+      setError('꾸밈말과 동물·사물을 하나씩 골라 주세요.');
       return;
     }
     setBusy(true);
@@ -68,13 +72,14 @@ export function AccountOnboarding() {
         try { localStorage.setItem(DISMISS_KEY, '1'); } catch { /* ignore */ }
         setOpen(false);
       } else if (reason === 'nickname_banned') {
-        // 금칙어 목록은 서버에만 있다(번들에 욕설 목록을 싣지 않으려고).
-        setError('다른 이름을 골라 주세요.');
+        // 금칙어 목록은 서버에만 있다(번들에 욕설 목록을 싣지 않으려고) — 조합을 바꿔 다시 골라야 한다.
+        setAdj(null); setNoun(null); setNum(rand2());
+        setError('그 조합은 쓸 수 없어요. 다른 낱말로 다시 골라 주세요.');
       } else if (reason === 'nickname_format') {
-        setError('아래 이름 중 하나를 골라 주세요.');
+        setError('꾸밈말과 동물·사물을 하나씩 골라 주세요.');
       } else {
-        setChoices(genNickChoices(3)); setNickname('');
-        setError('이미 누가 쓰는 이름이거나 네트워크 문제예요. 새 이름 중에서 다시 골라 주세요.');
+        setNum(rand2());
+        setError('이미 누가 쓰는 이름이거나 네트워크 문제예요 — 번호를 새로 붙였어요. 다시 시도해 주세요.');
       }
     } catch {
       setError('계정을 만들지 못했어요. 잠시 후 다시 시도해주세요.');
@@ -111,19 +116,34 @@ export function AccountOnboarding() {
       </div>
 
       <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>내 이름 고르기</label>
-      <div className="grid grid-cols-1 gap-2 mb-2" role="radiogroup" aria-label="이름 후보">
-        {choices.map((c) => (
-          <button key={c} type="button" role="radio" aria-checked={nickname === c} onClick={() => setNickname(c)}
-            className="w-full px-4 py-3 rounded-xl border text-base font-semibold"
-            style={{ background: nickname === c ? 'var(--color-primary)' : 'var(--bg-tertiary)', color: nickname === c ? '#fff' : 'var(--text-primary)', borderColor: nickname === c ? 'var(--color-primary)' : 'var(--key-border)' }}>
-            {c}
+      <div className="mb-2 px-3 py-2 rounded-xl border text-center text-base font-semibold" aria-live="polite"
+        style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--key-border)', color: 'var(--text-primary)' }}>
+        {nickname || '꾸밈말·동물을 골라 주세요'}
+      </div>
+      <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>꾸밈말</p>
+      <div className="flex flex-wrap gap-2 mb-2" role="radiogroup" aria-label="꾸밈말">
+        {NICK_ADJ.map((a) => (
+          <button key={a} type="button" role="radio" aria-checked={adj === a} onClick={() => setAdj(a)}
+            className="px-3 py-2 min-h-[44px] rounded-lg border text-sm font-semibold"
+            style={{ background: adj === a ? 'var(--color-primary)' : 'var(--bg-tertiary)', color: adj === a ? '#fff' : 'var(--text-primary)', borderColor: adj === a ? 'var(--color-primary)' : 'var(--key-border)' }}>
+            {a}
           </button>
         ))}
       </div>
-      <button type="button" onClick={() => { setChoices(genNickChoices(3)); setNickname(''); }}
+      <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>동물·사물</p>
+      <div className="flex flex-wrap gap-2 mb-1" role="radiogroup" aria-label="동물·사물">
+        {NICK_NOUN.map((n) => (
+          <button key={n} type="button" role="radio" aria-checked={noun === n} onClick={() => setNoun(n)}
+            className="px-3 py-2 min-h-[44px] rounded-lg border text-sm font-semibold"
+            style={{ background: noun === n ? 'var(--color-primary)' : 'var(--bg-tertiary)', color: noun === n ? '#fff' : 'var(--text-primary)', borderColor: noun === n ? 'var(--color-primary)' : 'var(--key-border)' }}>
+            {n}
+          </button>
+        ))}
+      </div>
+      <button type="button" onClick={() => setNum(rand2())}
         className="w-full mb-3 py-2 min-h-[44px] rounded-lg text-sm inline-flex items-center justify-center gap-1"
         style={{ color: 'var(--text-secondary)' }}>
-        <RefreshCw className="w-4 h-4" /> 다른 이름 보기
+        <RefreshCw className="w-4 h-4" /> 번호 다시 붙이기 ({num})
       </button>
       <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>학년 (선택)</label>
       <div className="flex gap-2 mb-3">
