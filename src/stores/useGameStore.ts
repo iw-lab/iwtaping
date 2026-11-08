@@ -31,7 +31,8 @@ interface GameStore {
   loadResults: () => void;
 }
 
-const RESULTS_KEY = 'typingverse-game-results';
+// export: BusCard(타비의 버스)가 «이미 한 판 쳤는지»를 판정하려고 이 키를 그대로 읽는다(첫 판 앞 프롤로그 안 띄우기).
+export const RESULTS_KEY = 'typingverse-game-results';
 
 /** 저장된 게임 기록. 파싱 실패·미저장은 빈 배열. */
 function readPersistedResults(): GameResult[] {

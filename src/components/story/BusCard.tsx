@@ -5,6 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BookOpen, Star } from 'lucide-react';
 import script from '@/lib/story/story.json';
 import { loadBook, saveBook, flatOf, busStage, busGoal, BUS_STAGES, type StoryBook } from '@/lib/story/book';
+import { RESULTS_KEY } from '@/stores/useGameStore';
+
+// 처음 온 아이는 학교 고르기 다음 바로 판(2026-11-08 사용자 «아무튼 빨리 게임하도록» · 관문 B17).
+// 프롤로그(when:{first:1})는 장부엔 늘 «열려» 있다 — 한 판도 안 쳤으면 이 자리에서만 미루고,
+// 첫 판 결과가 쌓인 뒤 다음 홈 방문에서 그대로 뜬다(내용·순서는 그대로, 뜨는 때만 뒤로).
+function hasPlayedAnyGame() {
+  try { return JSON.parse(localStorage.getItem(RESULTS_KEY) || '[]').length > 0; } catch { return false; }
+}
 
 type StoryApi = { play(id: string): Promise<unknown> };
 const TITLES: Record<string, string> = {
@@ -30,8 +38,10 @@ export function BusCard() {
     try {
       const { api, beatsDue } = await storyApi();
       const b = loadBook(localStorage);
+      const playedBefore = hasPlayedAnyGame();
       for (const id of beatsDue(script, flatOf(b))) {
         if (b.storySeen[id]) continue;
+        if (id === 'prologue' && !playedBefore) continue; // 첫 판 앞엔 안 띄운다 — 첫 판 결과 뒤 다음 방문에
         await api.play(id);
         b.storySeen[id] = 1;
         if (id === 'prologue') b.first = 0;

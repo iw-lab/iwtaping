@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // 타비의 버스(이야기·성장) 실측 — 사용: node tools/qa-story.mjs [주소(기본 http://127.0.0.1:5190)]
-//   S1 처음 기기 홈 = 프롤로그 창 · 얼굴 그림 · 건너뛰기   S2 건너뛰면 버스 카드(단계 이름·다음 목표 한 줄)
+//   S1 처음 기기 홈 = 첫 판 앞 이야기 창 0(학교 다음 바로 판 · 2026-11-08 B17)
+//   S1b 첫 판 기록이 쌓인 뒤 다음 홈 방문 = 프롤로그 창 · 얼굴 그림 · 건너뛰기
+//   S2 건너뛰면 버스 카드(단계 이름·다음 목표 한 줄)
 //   S3 판 결과(정확도 98%·단어 10개) → 별 3 → 홈에서 그 정류장 이야기   S4 앨범 = 본 이야기만 열림
 //   S5 게임 화면에서는 이야기 창이 뜨지 않는다   S6 콘솔 에러 0
 import { createRequire } from 'node:module';
@@ -26,10 +28,15 @@ try {
   // 가입 안내창은 이 실측과 무관 — 닫아 둔 기기로 연다
   await page.evaluateOnNewDocument(() => { try { localStorage.setItem('typingverse-onboard-seen', '1'); } catch { /* */ } });
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle2' });
+  await sleep(1500);
+  check('S1 처음 기기 = 첫 판 앞 이야기 창 0', await page.evaluate(() => !document.querySelector('.gbs:not([hidden])')));
+  // 첫 판을 친 걸로 기록(useGameStore RESULTS_KEY) → 다음 홈 방문에서 프롤로그가 뜬다
+  await page.evaluate(() => localStorage.setItem('typingverse-game-results', JSON.stringify([{ gameType: 'rain', accuracy: 98, wordsTyped: 10, timestamp: Date.now() }])));
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle2' });
   await page.waitForSelector('.gbs:not([hidden])', { timeout: 10000 }).catch(() => {});
   await page.waitForFunction(() => [...document.querySelectorAll('.gbs img')].some((i) => !i.hidden && i.naturalWidth > 0), { timeout: 6000 }).catch(() => {});
   const pro = await page.evaluate(() => ({ open: !!document.querySelector('.gbs:not([hidden])'), face: [...document.querySelectorAll('.gbs img')].some((i) => !i.hidden && i.naturalWidth > 0), skip: [...document.querySelectorAll('.gbs button')].some((b) => /건너뛰기/.test(b.textContent)) }));
-  check('S1 처음 기기 = 프롤로그 · 얼굴 · 건너뛰기', pro.open && pro.face && pro.skip, JSON.stringify(pro));
+  check('S1b 첫 판 기록 뒤 = 프롤로그 · 얼굴 · 건너뛰기', pro.open && pro.face && pro.skip, JSON.stringify(pro));
   await page.evaluate(() => [...document.querySelectorAll('.gbs button')].find((b) => /건너뛰기/.test(b.textContent))?.click());
   await sleep(800);
   const card = await page.evaluate(() => ({ text: document.querySelector('[data-story="bus"]')?.textContent || '', goal: document.querySelector('[data-story="goal"]')?.textContent || '', img: document.querySelector('[data-story="bus"] img')?.naturalWidth || 0 }));
