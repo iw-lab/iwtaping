@@ -184,10 +184,30 @@ test('HB-8 음악 과목 문항', async () => {
   assert.ok(p.qs.every((q) => !/[=×÷+]/.test(q.text)), '음악을 골랐는데 수학 문제: ' + p.qs.map((q) => q.text).join(' / '));
 });
 
+test('HB-SCI 과학 과목(1.31) — 범주별 40문항·학년 맞춤·보기·정답 위치·최장 보기 쏠림·허브 출제 경로', async () => {
+  const { makeQuestions } = await import('../hub/shared/quiz.js');
+  const { SCI, sciCount } = await import('../hub/shared/sci.js');
+  for (const [g, name] of [[4, '기체'], [6, '전기'], [3, '공통']]) assert.ok(sciCount((x) => x.g === g) >= 40, `${name} 문항 ${sciCount((x) => x.g === g)} < 40`);
+  const elec = new Set(SCI.filter((x) => x.g === 6).map((x) => x.q)), gas = new Set(SCI.filter((x) => x.g === 4).map((x) => x.q));
+  const pos = [0, 0, 0]; let longest = 0, n = 0;
+  for (const grade of [3, 4, 5, 6]) for (let seed = 1; seed <= 400; seed++) for (const q of makeQuestions(seed * 104729 + grade, { subject: 'sci', grade, count: 5 })) {
+    assert.equal(new Set(q.choices).size, 3, '보기 중복: ' + JSON.stringify(q));
+    if (grade < 6) assert.ok(!elec.has(q.text), `${grade}학년에 6학년 전기 문항: ${q.text}`);
+    if (grade < 4) assert.ok(!gas.has(q.text), `${grade}학년에 4학년 기체 문항: ${q.text}`);
+    pos[q.answer]++; n++;
+    const L = q.choices.map((c) => [...c].length), mx = Math.max(...L); if (L[q.answer] === mx && L.filter((x) => x === mx).length === 1) longest++;
+  }
+  for (const c of pos) assert.ok(Math.abs(c / n - 1 / 3) < 0.03, '정답 위치 쏠림: ' + pos);
+  assert.ok(longest / n <= 0.5, `정답이 가장 긴 보기 ${(longest / n * 100).toFixed(0)}% > 50%`);
+  const { dh, call } = await mk();
+  const p = await call('/pack', { dh, subject: 'sci', grade: 6 });
+  assert.ok(p.qs.every((q) => SCI.some((x) => x.q === q.text)), '과학을 골랐는데 다른 과목 문제: ' + p.qs.map((q) => q.text).join(' / '));
+});
+
 test('HB-Q 한 묶음 안 같은 문항 0 — 음악 3학년 5문제에 «3/4박자…»가 세 번 나왔다(2026-10-14 배포본)', async () => {
   const { makeQuestions } = await import('../hub/shared/quiz.js');
   const dup = [];
-  for (const subject of ['math', 'eng', 'music']) for (let grade = 1; grade <= 6; grade++) for (let seed = 0; seed < 400; seed++) {
+  for (const subject of ['math', 'eng', 'music', 'sci']) for (let grade = 1; grade <= 6; grade++) for (let seed = 0; seed < 400; seed++) {
     const qs = makeQuestions(seed, { subject, grade, count: 5 });
     if (new Set(qs.map((q) => q.text)).size !== qs.length) dup.push(`${subject}/${grade}/${seed}`);
   }
@@ -396,4 +416,25 @@ test('HB-MOVE 이사 — 내보내기·가져오기 후 표 내용·트리거·�
     assert.equal((await B.hub.admin('load', { t: 'sqlite_master', rows: [] })).status, 400);
     assert.equal((await B.hub.admin('dump', { t: 'dev; DROP TABLE dev' })).status, 400);
   }
+});
+
+// 👻 HB-GHOST(1.26 · 2026-11-10 «친구 기록에 도전하면 그 친구를 유령처럼») — 학교 고른 기기만 · 자기 최고만 덮음 · 목록 별명만(글쓰기 거절) · 나 빼고 1등·바로 위·바로 아래 · 이틀 지난 것 지움
+test('HB-GHOST 유령 기록 — 저장·덮기·별명 검사·상대 고르기·옛것 지우기', async () => {
+  const { dh, dh2, call, tick } = await mk();
+  const D = '0:0;50:1;120:2';
+  assert.equal((await call('/ghost', { dh, k: 'time', best: 10, nick: '용감한 수달', data: D })).why, 'school', '학교 없으면 안 받는다');
+  await call('/select', { dh, school: SCHOOL }); await call('/select', { dh: dh2, school: SCHOOL });
+  assert.equal((await call('/ghost', { dh, k: 'time', best: 10, nick: '김민수', data: D })).error, 'ghost', '목록 밖 별명(실명 가능) 거절');
+  assert.equal((await call('/ghost', { dh, k: 'time', best: 10, nick: '용감한 수달', data: '<script>' })).error, 'ghost', '기록 글자 형식');
+  assert.equal((await call('/ghost', { dh, k: 'time', best: 10, nick: '용감한 수달', data: D })).saved, true);
+  assert.equal((await call('/ghost', { dh, k: 'time', best: 8, nick: '용감한 수달', data: D })).saved, false, '더 낮은 기록은 안 덮는다');
+  assert.equal((await call('/ghost', { dh, k: 'time', best: 12, nick: '용감한 수달', data: D })).saved, true);
+  await call('/ghost', { dh: dh2, k: 'time', best: 20, nick: '날쌘 토끼', data: D });
+  const me = await call('/ghosts', { dh, k: 'time', mine: 12 });
+  assert.deepEqual(me.list.map((x) => [x.tag, x.nick, x.best]), [['top', '날쌘 토끼', 20]], '나는 빼고 · 1등 = 바로 위면 한 번만');
+  const other = await call('/ghosts', { dh: dh2, k: 'time', mine: 20 });
+  assert.deepEqual(other.list.map((x) => [x.tag, x.best]), [['top', 12]], '1등이 바로 아래면 한 번만');
+  assert.equal((await call('/ghosts', { dh, k: 'survival', mine: 0 })).list.length, 0, '모드가 다르면 따로');
+  tick(3 * 864e5); await call('/ghost', { dh, k: 'time', best: 3, nick: '용감한 수달', data: D });
+  assert.equal((await call('/ghosts', { dh: dh2, k: 'time', mine: 0 })).list.length, 1, '오늘 것만');
 });
